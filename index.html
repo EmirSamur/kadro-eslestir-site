@@ -777,6 +777,7 @@ var KamuEslestir = (() => {
     eslestir: () => eslestir,
     gruplandir: () => gruplandir,
     hatirlatmaPlani: () => hatirlatmaPlani,
+    ilanlariBirlestir: () => ilanlariBirlestir,
     takipSirala: () => takipSirala
   });
 
@@ -1372,7 +1373,7 @@ var KamuEslestir = (() => {
     { tip: "kpssOpsiyonel", puanTuru: "P3", yillar: [2025, 2026], yoksaVarsayilan: 70 },
     { tip: "manuel", aciklama: "G\xFCncel programlama dillerinden en az ikisini bildi\u011Fini belgelemek." }
   ];
-  function bilisimKadro(id, unvan, kontenjan, kat, yil, ek) {
+  function bilisimKadro(id, unvan, kontenjan, kat, yil2, ek) {
     return {
       id,
       unvan,
@@ -1381,7 +1382,7 @@ var KamuEslestir = (() => {
       kurallar: [
         ...BILISIM_ORTAK,
         kat === 2 ? BILISIM_BOLUM_2KAT : BILISIM_BOLUM_UST,
-        { tip: "deneyim", enAzYil: yil, aciklama: "lisans sonras\u0131 SGK'l\u0131 bili\u015Fim personeli deneyimi" },
+        { tip: "deneyim", enAzYil: yil2, aciklama: "lisans sonras\u0131 SGK'l\u0131 bili\u015Fim personeli deneyimi" },
         ...ek ? [{ tip: "manuel", aciklama: ek }] : []
       ],
       notlar: [`S\xF6zle\u015Fme \xFCcret tavan\u0131n\u0131n ${kat} kat\u0131na kadar.`]
@@ -1740,12 +1741,304 @@ var KamuEslestir = (() => {
     pomem34,
     izmirZabita2026
   ];
+
+  // src/ilanSema.ts
+  var OGRENIMLER = ["ortaogretim", "onlisans", "lisans", "yukseklisans", "doktora"];
+  var PUAN_TURLERI = ["P3", "P93", "P94", "P4"];
+  var ALES_TURLERI = ["SAY", "SOZ", "EA"];
+  var CINSIYETLER = ["E", "K"];
+  var ASKERLIK_DURUMLARI = ["yapildi", "tecilli", "muaf", "yedek", "yok"];
+  var BOLUM_KATEGORILERI = [
+    "muhendislik",
+    "bilisim-muhendislik-cekirdek",
+    "bilisim-fen-egitim-bilgisayar",
+    "istatistik-matematik-fizik",
+    "hukuk"
+  ];
+  var ILAN_TIPLERI = ["memur", "sozlesmeli-bilisim", "subay", "astsubay", "uzman-erbas", "polis"];
+  var KESINLIKLER = ["resmi-metin", "haber-ozeti", "gecmis-ilanlara-gore"];
+  var KATEGORI_LISTESI = ["askeri", "emniyet", "memur", "bilisim"];
+  var yil = { tur: "sayiListe", tam: true, min: 2015, max: 2100 };
+  var KURAL_SEMA = {
+    ogrenim: {
+      etiket: "\xD6\u011Frenim d\xFCzeyi",
+      aciklama: "En az \u015Fu d\xFCzeyde mezun olmak. \xD6n lisans kontenjan\u0131 gibi durumlarda \xFCst s\u0131n\u0131r da verilebilir.",
+      alanlar: [
+        { ad: "enAz", etiket: "En az", zorunlu: true, tip: { tur: "secim", secenekler: OGRENIMLER } },
+        { ad: "enFazla", etiket: "En fazla", zorunlu: false, ipucu: "\xD6rn. yaln\u0131zca \xF6n lisans mezunlar\u0131", tip: { tur: "secim", secenekler: OGRENIMLER } }
+      ]
+    },
+    bolum: {
+      etiket: "B\xF6l\xFCm",
+      aciklama: "Program adlar\u0131 (diplomadaki gibi), b\xF6l\xFCm kategorileri ya da her b\xF6l\xFCm. En az biri dolu olmal\u0131.",
+      alanlar: [
+        { ad: "programlar", etiket: "Program adlar\u0131", zorunlu: false, ipucu: "Her sat\u0131ra bir b\xF6l\xFCm", tip: { tur: "metinListe" } },
+        { ad: "kategoriler", etiket: "B\xF6l\xFCm kategorileri", zorunlu: false, tip: { tur: "secimCoklu", secenekler: BOLUM_KATEGORILERI } },
+        { ad: "herBolum", etiket: "Her b\xF6l\xFCm kabul", zorunlu: false, tip: { tur: "bool" } }
+      ]
+    },
+    bolumTablo: {
+      etiket: "B\xF6l\xFCm tablosu (kontrol et)",
+      aciklama: 'B\xF6l\xFCmler ilandaki uzun bir tablodan se\xE7iliyor; kullan\u0131c\u0131ya "kontrol et" g\xF6sterilir.',
+      alanlar: [{ ad: "aciklama", etiket: "A\xE7\u0131klama", zorunlu: true, tip: { tur: "metin" } }]
+    },
+    kpss: {
+      etiket: "KPSS",
+      aciklama: "Belirtilen y\u0131llardan birinde en az bu puan.",
+      alanlar: [
+        { ad: "puanTuru", etiket: "Puan t\xFCr\xFC", zorunlu: true, tip: { tur: "secim", secenekler: PUAN_TURLERI } },
+        { ad: "enAz", etiket: "En az puan", zorunlu: true, tip: { tur: "sayi", min: 0, max: 100 } },
+        { ad: "yillar", etiket: "Ge\xE7erli y\u0131llar", zorunlu: true, ipucu: "Virg\xFClle: 2025, 2026", tip: yil }
+      ]
+    },
+    kpssOpsiyonel: {
+      etiket: "KPSS (zorunlu de\u011Fil)",
+      aciklama: "KPSS yoksa varsay\u0131lan puan kullan\u0131l\u0131r (s\xF6zle\u015Fmeli bili\u015Fim ilanlar\u0131).",
+      alanlar: [
+        { ad: "puanTuru", etiket: "Puan t\xFCr\xFC", zorunlu: true, tip: { tur: "secim", secenekler: PUAN_TURLERI } },
+        { ad: "yillar", etiket: "Ge\xE7erli y\u0131llar", zorunlu: true, tip: yil },
+        { ad: "yoksaVarsayilan", etiket: "Yoksa varsay\u0131lan puan", zorunlu: true, tip: { tur: "sayi", min: 0, max: 100 } }
+      ]
+    },
+    ales: {
+      etiket: "ALES",
+      aciklama: "En az bu ALES puan\u0131.",
+      alanlar: [
+        { ad: "tur", etiket: "T\xFCr", zorunlu: true, tip: { tur: "secim", secenekler: ALES_TURLERI } },
+        { ad: "enAz", etiket: "En az puan", zorunlu: true, tip: { tur: "sayi", min: 0, max: 100 } },
+        { ad: "yillar", etiket: "Ge\xE7erli y\u0131llar", zorunlu: false, tip: yil }
+      ]
+    },
+    yasEnAz: {
+      etiket: "Ya\u015F alt s\u0131n\u0131r\u0131",
+      aciklama: "Referans tarihinde en az bu ya\u015Fta olmak.",
+      alanlar: [
+        { ad: "yas", etiket: "Ya\u015F", zorunlu: true, tip: { tur: "sayi", tam: true, min: 15, max: 70 } },
+        { ad: "referans", etiket: "Referans tarihi", zorunlu: true, tip: { tur: "tarih" } }
+      ]
+    },
+    yasBitirmemis: {
+      etiket: "Ya\u015F \xFCst s\u0131n\u0131r\u0131",
+      aciklama: "Referans tarihinde bu ya\u015F\u0131 bitirmemi\u015F olmak. Askeri ilanlarda do\u011Fum y\u0131l\u0131na g\xF6re hesaplan\u0131r.",
+      alanlar: [
+        { ad: "yas", etiket: "Ya\u015F", zorunlu: true, tip: { tur: "sayi", tam: true, min: 15, max: 70 } },
+        { ad: "referans", etiket: "Referans tarihi", zorunlu: true, ipucu: "Genelde y\u0131l\u0131n 1 Ocak'\u0131 ya da son ba\u015Fvuru g\xFCn\xFC", tip: { tur: "tarih" } }
+      ]
+    },
+    cinsiyet: {
+      etiket: "Cinsiyet",
+      aciklama: "Yaln\u0131zca bu cinsiyetler ba\u015Fvurabilir.",
+      alanlar: [{ ad: "izinli", etiket: "\u0130zinli", zorunlu: true, tip: { tur: "secimCoklu", secenekler: CINSIYETLER } }]
+    },
+    askerlik: {
+      etiket: "Askerlik",
+      aciklama: "Erkek adaylar i\xE7in kabul edilen askerlik durumlar\u0131.",
+      alanlar: [
+        { ad: "kabul", etiket: "Kabul edilen", zorunlu: true, tip: { tur: "secimCoklu", secenekler: ASKERLIK_DURUMLARI } },
+        { ad: "kosullu", etiket: "Ko\u015Fullu kabul", zorunlu: false, ipucu: "\xD6rn. tecilli: tecil en az 1 y\u0131l olmal\u0131", tip: { tur: "kosulluListe" } }
+      ]
+    },
+    deneyim: {
+      etiket: "Deneyim",
+      aciklama: "En az bu kadar y\u0131l mesleki deneyim.",
+      alanlar: [
+        { ad: "enAzYil", etiket: "En az y\u0131l", zorunlu: true, tip: { tur: "sayi", min: 0, max: 40 } },
+        { ad: "aciklama", etiket: "A\xE7\u0131klama", zorunlu: true, tip: { tur: "metin" } }
+      ]
+    },
+    kamudaCalismamak657: {
+      etiket: "657'de \xE7al\u0131\u015Fm\u0131yor olmak",
+      aciklama: "Halen 657'ye tabi bir kadroda \xE7al\u0131\u015Fanlar ba\u015Fvuramaz.",
+      alanlar: []
+    },
+    manuel: {
+      etiket: "Di\u011Fer \u015Fart (kontrol listesi)",
+      aciklama: "Motorun do\u011Frulayamad\u0131\u011F\u0131 \u015Fart: boy, sa\u011Fl\u0131k, ehliyet, sertifika\u2026",
+      alanlar: [{ ad: "aciklama", etiket: "A\xE7\u0131klama", zorunlu: true, tip: { tur: "metin" } }]
+    }
+  };
+
+  // src/ilanDogrula.ts
+  var ID_DESENI = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+  var TARIH = /^\d{4}-\d{2}-\d{2}$/;
+  var MAKS_METIN = 600;
+  var nesneMi = (x) => typeof x === "object" && x !== null && !Array.isArray(x);
+  var tarihMi = (x) => typeof x === "string" && TARIH.test(x) && !Number.isNaN(Date.parse(x + "T00:00:00Z")) && (/* @__PURE__ */ new Date(x + "T00:00:00Z")).toISOString().slice(0, 10) === x;
+  var metinMi = (x) => typeof x === "string" && x.trim().length > 0 && x.length <= MAKS_METIN;
+  var metinListesiMi = (x) => Array.isArray(x) && x.every(metinMi);
+  var httpsMi = (x) => {
+    if (typeof x !== "string") return false;
+    try {
+      const u = new URL(x);
+      return u.protocol === "https:" || u.protocol === "http:";
+    } catch {
+      return false;
+    }
+  };
+  function fazlaAlanlar(o, izinli, yer, hatalar) {
+    for (const k of Object.keys(o)) if (!izinli.includes(k)) hatalar.push(`${yer}: bilinmeyen alan "${k}"`);
+  }
+  function alanDogrula(a, v, yer, hatalar) {
+    const t = a.tip;
+    const sayiUygun = (n, tam, min, max) => typeof n === "number" && Number.isFinite(n) && (!tam || Number.isInteger(n)) && (min === void 0 || n >= min) && (max === void 0 || n <= max);
+    switch (t.tur) {
+      case "secim":
+        if (typeof v !== "string" || !t.secenekler.includes(v)) hatalar.push(`${yer}: "${a.etiket}" \u015Funlardan biri olmal\u0131: ${t.secenekler.join(", ")}`);
+        break;
+      case "secimCoklu":
+        if (!Array.isArray(v) || v.length === 0 || !v.every((x) => typeof x === "string" && t.secenekler.includes(x)))
+          hatalar.push(`${yer}: "${a.etiket}" en az bir se\xE7im i\xE7ermeli (${t.secenekler.join(", ")})`);
+        else if (new Set(v).size !== v.length) hatalar.push(`${yer}: "${a.etiket}" tekrar eden se\xE7im i\xE7eriyor`);
+        break;
+      case "sayi":
+        if (!sayiUygun(v, t.tam, t.min, t.max))
+          hatalar.push(`${yer}: "${a.etiket}" ${t.tam ? "tam " : ""}say\u0131 olmal\u0131${t.min !== void 0 ? ` (${t.min}\u2013${t.max})` : ""}`);
+        break;
+      case "sayiListe":
+        if (!Array.isArray(v) || v.length === 0 || !v.every((n) => sayiUygun(n, t.tam, t.min, t.max)))
+          hatalar.push(`${yer}: "${a.etiket}" en az bir de\u011Fer i\xE7eren say\u0131 listesi olmal\u0131`);
+        break;
+      case "tarih":
+        if (!tarihMi(v)) hatalar.push(`${yer}: "${a.etiket}" YYYY-AA-GG bi\xE7iminde ge\xE7erli bir tarih olmal\u0131`);
+        break;
+      case "metin":
+        if (!metinMi(v)) hatalar.push(`${yer}: "${a.etiket}" bo\u015F olamaz (en fazla ${MAKS_METIN} karakter)`);
+        break;
+      case "metinListe":
+        if (!metinListesiMi(v) || v.length === 0) hatalar.push(`${yer}: "${a.etiket}" en az bir dolu sat\u0131r i\xE7ermeli`);
+        break;
+      case "bool":
+        if (typeof v !== "boolean") hatalar.push(`${yer}: "${a.etiket}" do\u011Fru/yanl\u0131\u015F olmal\u0131`);
+        break;
+      case "kosulluListe":
+        if (!Array.isArray(v) || !v.every((x) => nesneMi(x) && typeof x.durum === "string" && ASKERLIK_DURUMLARI.includes(x.durum) && metinMi(x.not) && Object.keys(x).length === 2))
+          hatalar.push(`${yer}: "${a.etiket}" her sat\u0131r\u0131 { durum, not } olmal\u0131`);
+        break;
+    }
+  }
+  function kuralDogrula(k, yer, hatalar) {
+    if (!nesneMi(k)) {
+      hatalar.push(`${yer}: kural nesne olmal\u0131`);
+      return;
+    }
+    const tip = k.tip;
+    if (typeof tip !== "string" || !(tip in KURAL_SEMA)) {
+      hatalar.push(`${yer}: bilinmeyen kural tipi "${String(tip)}"`);
+      return;
+    }
+    const tanim = KURAL_SEMA[tip];
+    const y = `${yer} (${tanim.etiket})`;
+    fazlaAlanlar(k, ["tip", ...tanim.alanlar.map((a) => a.ad)], y, hatalar);
+    for (const a of tanim.alanlar) {
+      if (k[a.ad] === void 0) {
+        if (a.zorunlu) hatalar.push(`${y}: "${a.etiket}" zorunlu`);
+        continue;
+      }
+      alanDogrula(a, k[a.ad], y, hatalar);
+    }
+    if (tip === "bolum" && k.programlar === void 0 && k.kategoriler === void 0 && k.herBolum !== true)
+      hatalar.push(`${y}: program ad\u0131, b\xF6l\xFCm kategorisi ya da "her b\xF6l\xFCm" se\xE7eneklerinden en az biri olmal\u0131`);
+    if (tip === "ogrenim" && typeof k.enAz === "string" && typeof k.enFazla === "string" && OGRENIMLER.indexOf(k.enFazla) < OGRENIMLER.indexOf(k.enAz))
+      hatalar.push(`${y}: "En fazla", "En az"dan d\xFC\u015F\xFCk olamaz`);
+  }
+  function ilanDogrula(x) {
+    const hatalar = [], uyarilar = [];
+    if (!nesneMi(x)) return { hatalar: ["\u0130lan bir nesne olmal\u0131"], uyarilar };
+    fazlaAlanlar(x, [
+      "id",
+      "kurum",
+      "baslik",
+      "tip",
+      "kategori",
+      "eklendi",
+      "basvuruBaslangic",
+      "sonBasvuru",
+      "kaynaklar",
+      "kesinlik",
+      "siralama",
+      "genelNotlar",
+      "kadrolar"
+    ], "\u0130lan", hatalar);
+    if (typeof x.id !== "string" || x.id.length < 3 || x.id.length > 80 || !ID_DESENI.test(x.id))
+      hatalar.push("Kimlik (id) 3\u201380 karakter, k\xFC\xE7\xFCk harf, rakam ve tire olmal\u0131 (\xF6rn. msb-astsubay-2027)");
+    if (!metinMi(x.kurum)) hatalar.push("Kurum bo\u015F olamaz");
+    if (!metinMi(x.baslik)) hatalar.push("Ba\u015Fl\u0131k bo\u015F olamaz");
+    if (!ILAN_TIPLERI.includes(x.tip)) hatalar.push(`\u0130lan tipi \u015Funlardan biri olmal\u0131: ${ILAN_TIPLERI.join(", ")}`);
+    if (!KATEGORI_LISTESI.includes(x.kategori)) hatalar.push(`T\xFCr \u015Funlardan biri olmal\u0131: ${KATEGORI_LISTESI.join(", ")}`);
+    if (!KESINLIKLER.includes(x.kesinlik)) hatalar.push(`Kesinlik \u015Funlardan biri olmal\u0131: ${KESINLIKLER.join(", ")}`);
+    if (!tarihMi(x.eklendi)) hatalar.push("Eklenme tarihi ge\xE7erli bir tarih olmal\u0131");
+    for (const [ad, etiket] of [["basvuruBaslangic", "Ba\u015Fvuru ba\u015Flang\u0131c\u0131"], ["sonBasvuru", "Son ba\u015Fvuru"]])
+      if (x[ad] !== void 0 && !tarihMi(x[ad])) hatalar.push(`${etiket} YYYY-AA-GG bi\xE7iminde ge\xE7erli bir tarih olmal\u0131`);
+    if (tarihMi(x.basvuruBaslangic) && tarihMi(x.sonBasvuru) && x.basvuruBaslangic > x.sonBasvuru)
+      hatalar.push("Ba\u015Fvuru ba\u015Flang\u0131c\u0131 son ba\u015Fvurudan sonra olamaz");
+    if (!Array.isArray(x.kaynaklar) || x.kaynaklar.length === 0 || !x.kaynaklar.every(httpsMi))
+      hatalar.push("En az bir kaynak ba\u011Flant\u0131s\u0131 olmal\u0131 (http/https)");
+    if (x.genelNotlar !== void 0 && !metinListesiMi(x.genelNotlar)) hatalar.push("Genel notlar dolu sat\u0131rlardan olu\u015Fmal\u0131");
+    if (x.siralama !== void 0) {
+      const s = x.siralama;
+      if (!nesneMi(s) || typeof s.kpssAgirlik !== "number" || typeof s.ydsAgirlik !== "number" || Object.keys(s).length !== 2)
+        hatalar.push("S\u0131ralama { kpssAgirlik, ydsAgirlik } olmal\u0131");
+    }
+    if (x.kesinlik !== "gecmis-ilanlara-gore" && x.sonBasvuru === void 0)
+      uyarilar.push('Son ba\u015Fvuru tarihi yok: hat\u0131rlatma e-postas\u0131 g\xF6nderilemez, ilan "tarih belli de\u011Fil" g\xF6r\xFCn\xFCr');
+    if (x.kesinlik === "gecmis-ilanlara-gore" && x.sonBasvuru !== void 0)
+      uyarilar.push("Beklenen ilanda son ba\u015Fvuru tarihi var; ilan a\xE7\u0131k/kapal\u0131 gibi de\u011Ferlendirilir");
+    if (x.kaynaklar && Array.isArray(x.kaynaklar) && x.kaynaklar.some((u) => typeof u === "string" && u.startsWith("http:")))
+      uyarilar.push("Kaynaklardan biri https de\u011Fil");
+    if (!Array.isArray(x.kadrolar) || x.kadrolar.length === 0) {
+      hatalar.push("En az bir kadro olmal\u0131");
+      return { hatalar, uyarilar };
+    }
+    const idler = /* @__PURE__ */ new Set();
+    x.kadrolar.forEach((k, i) => {
+      const yer = `Kadro ${i + 1}`;
+      if (!nesneMi(k)) {
+        hatalar.push(`${yer}: nesne olmal\u0131`);
+        return;
+      }
+      fazlaAlanlar(k, ["id", "unvan", "kontenjan", "iller", "kurallar", "notlar"], yer, hatalar);
+      if (typeof k.id !== "string" || !ID_DESENI.test(k.id) || k.id.length > 60) hatalar.push(`${yer}: kimlik k\xFC\xE7\xFCk harf, rakam ve tire olmal\u0131`);
+      else if (idler.has(k.id)) hatalar.push(`${yer}: "${k.id}" kimli\u011Fi ba\u015Fka bir kadroda da var`);
+      else idler.add(k.id);
+      if (!metinMi(k.unvan)) hatalar.push(`${yer}: unvan bo\u015F olamaz`);
+      if (typeof k.kontenjan !== "number" || !Number.isInteger(k.kontenjan) || k.kontenjan < 0) hatalar.push(`${yer}: kontenjan 0 ya da pozitif tam say\u0131 olmal\u0131 (bilinmiyorsa 0)`);
+      if (k.iller !== void 0 && !metinListesiMi(k.iller)) hatalar.push(`${yer}: iller dolu sat\u0131rlardan olu\u015Fmal\u0131`);
+      if (k.notlar !== void 0 && !metinListesiMi(k.notlar)) hatalar.push(`${yer}: notlar dolu sat\u0131rlardan olu\u015Fmal\u0131`);
+      if (!Array.isArray(k.kurallar) || k.kurallar.length === 0) {
+        hatalar.push(`${yer}: en az bir kural olmal\u0131`);
+        return;
+      }
+      k.kurallar.forEach((r, j) => kuralDogrula(r, `${yer}, kural ${j + 1}`, hatalar));
+      const tipler = k.kurallar.map((r) => nesneMi(r) ? r.tip : void 0);
+      const ad = metinMi(k.unvan) ? `"${k.unvan}"` : yer;
+      if (!tipler.includes("ogrenim")) uyarilar.push(`${ad}: \xF6\u011Frenim \u015Fart\u0131 yok, her d\xFCzey ba\u015Fvurabilir g\xF6r\xFCn\xFCr`);
+      if (!tipler.includes("kpss") && !tipler.includes("kpssOpsiyonel") && !tipler.includes("ales")) uyarilar.push(`${ad}: s\u0131nav (KPSS/ALES) \u015Fart\u0131 yok`);
+      if (!tipler.includes("bolum") && !tipler.includes("bolumTablo")) uyarilar.push(`${ad}: b\xF6l\xFCm \u015Fart\u0131 yok; b\xF6l\xFCm \u015Farts\u0131zsa "B\xF6l\xFCm \u2192 her b\xF6l\xFCm" ekle`);
+    });
+    return { hatalar, uyarilar };
+  }
+  function ilanlariBirlestir(statik, dbVerileri) {
+    const atlanan = [];
+    const db = /* @__PURE__ */ new Map();
+    for (const v of dbVerileri) {
+      const { hatalar } = ilanDogrula(v);
+      const id = nesneMi(v) && typeof v.id === "string" ? v.id : "?";
+      if (hatalar.length) {
+        atlanan.push({ id, hatalar });
+        continue;
+      }
+      db.set(id, v);
+    }
+    const ilanlar = statik.map((i) => db.get(i.id) ?? i);
+    for (const [id, ilan] of db) if (!statik.some((i) => i.id === id)) ilanlar.push(ilan);
+    return { ilanlar, atlanan };
+  }
   return __toCommonJS(browser_exports);
 })();
 </script>
 <script>
 (function () {
-  const { eslestir, gruplandir, hatirlatmaPlani, takipSirala, ILANLAR, ORNEK_BOLUMLER } = window.KamuEslestir;
+  const { eslestir, gruplandir, hatirlatmaPlani, takipSirala, ILANLAR, ORNEK_BOLUMLER, ilanlariBirlestir } = window.KamuEslestir;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const bugun = window.KADRO_BUGUN || (() => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); })();
@@ -1754,14 +2047,19 @@ var KamuEslestir = (() => {
   const depoAl = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
   const depoYaz = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 
+  const normal = (b) => b.toLocaleLowerCase("tr-TR").replace(/\s*-\s*/g, "-").replace(/\s+/g, " ").trim();
+  let BOLUMLER = [], BOLUM_SET = new Set();
+  const IKON = { uygun: "✓", kontrol: "?", uygun_degil: "✕" };
+  const HUKUM = { uygun: "Başvurabilirsin", kontrol: "Kontrol et", uygun_degil: "Uygun değil" };
+  // İlanlara bağlı her şey (bölüm önerileri, hero sayıları, şerit, çizelge). Panelden yayımlanan ilanlar yüklenince yeniden çizilir.
+  function ilanOzetiCiz() {
   // ── Bölüm önerileri: ilanlarda geçen tüm program adları + kategori kataloğu ──
-  const BOLUMLER = (() => {
+  BOLUMLER = (() => {
     const set = new Set(ORNEK_BOLUMLER);
     ILANLAR.forEach((i) => i.kadrolar.forEach((k) => k.kurallar.forEach((r) => { if (r.tip === "bolum" && r.programlar) r.programlar.forEach((b) => set.add(b)); })));
     return [...set].sort((a, b) => a.localeCompare(b, "tr"));
   })();
-  const normal = (b) => b.toLocaleLowerCase("tr-TR").replace(/\s*-\s*/g, "-").replace(/\s+/g, " ").trim();
-  const BOLUM_SET = new Set(BOLUMLER.map(normal));
+  BOLUM_SET = new Set(BOLUMLER.map(normal));
   $("bolumListe").innerHTML = BOLUMLER.map((b) => '<option value="' + esc(b) + '">').join("");
 
   // ── Hero: sayılar, örnek kartlar, şerit ──
@@ -1775,8 +2073,6 @@ var KamuEslestir = (() => {
     "<span><b>" + kadroSayi + "</b> kadro</span>" +
     "<span><b>" + BOLUMLER.length + "</b> bölüm adı</span>";
 
-  const IKON = { uygun: "✓", kontrol: "?", uygun_degil: "✕" };
-  const HUKUM = { uygun: "Başvurabilirsin", kontrol: "Kontrol et", uygun_degil: "Uygun değil" };
   (function ornekKartlar() {
     // Hero'daki kartlar motorun gerçek çıktısıdır (örnek bir profil için).
     const ornekProfil = { ogrenim: "lisans", bolum: "Bilgisayar Mühendisliği", dogumTarihi: "1999-04-12", cinsiyet: "E", askerlik: "tecilli",
@@ -1815,6 +2111,8 @@ var KamuEslestir = (() => {
     $("cizelgeKonu").textContent = "Bugün son gün: " + baslik;
     $("cizelgeAlt").textContent = "Başvuru 23:59'da kapanıyor. Takip listemi aç →";
   })();
+  }
+  ilanOzetiCiz();
 
   // Hero ışığı: yavaş süzülen iki renk lekesi ve yıldız tozu. Hareket azaltma tercihinde sabit kalır.
   (function isik() {
@@ -2145,6 +2443,20 @@ var KamuEslestir = (() => {
   // ── Yayındaki site: Supabase oturumu ve senkronizasyon ──
   const durum = (t) => { const d = $("durumCubugu"); d.hidden = !t; d.textContent = t || ""; };
 
+  // Panelden yayımlanan ilanlar koddakilere eklenir (aynı kimlikte panel sürümü geçerli). Doğrulanamayan kayıt atlanır.
+  // Ağ hatasında site koddaki ilanlarla çalışmaya devam eder.
+  const ilanlarHazir = (async () => {
+    try {
+      const { data, error } = await db.from("ilanlar").select("veri").eq("yayinda", true).limit(2000);
+      if (error || !data || !data.length) return;
+      const { ilanlar, atlanan } = ilanlariBirlestir(ILANLAR, data.map((r) => r.veri));
+      if (atlanan.length && window.console) console.warn("Geçersiz ilanlar atlandı", atlanan);
+      ILANLAR.splice(0, ILANLAR.length, ...ilanlar);
+      ilanOzetiCiz();
+      if (sonProfil) ciz();
+    } catch (e) { if (window.console) console.warn("İlanlar yüklenemedi", e); }
+  })();
+
   function profiliForma(p) {
     const ata = (id, v) => { if (v !== undefined && v !== null) $(id).value = v; };
     ata("bolum", p.bolum); ata("ogrenim", p.ogrenim); ata("dogum", p.dogumTarihi); ata("cinsiyet", p.cinsiyet); ata("askerlik", p.askerlik);
@@ -2173,6 +2485,7 @@ var KamuEslestir = (() => {
       db.from("takip").select("ilan_id").eq("user_id", user.id),
     ]);
     if (e1 || e2) { durum("Veriler alınamadı: " + (e1 || e2).message); return; }
+    await ilanlarHazir; // takip listesindeki panel ilanları "geçersiz" sayılıp silinmesin
 
     // İlk girişte bu tarayıcıdaki profil ve takip listesi hesaba taşınır; sonraki girişlerde hesaptaki geçerlidir.
     if (pr) { profiliForma(pr.profil); $("bildirimAcik").checked = pr.bildirim_eposta; }

@@ -3,315 +3,539 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Kadro Eşleştir</title>
+<title>Kadroya</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20256%20256%22%3E%3Crect%20width%3D%22256%22%20height%3D%22256%22%20rx%3D%2256%22%20fill%3D%22%23141414%22/%3E%3Cg%20transform%3D%22translate%2828%2028%29%20scale%280.78%29%22%3E%3Cpath%20fill%3D%22%23F6F3EE%22%20d%3D%22M90%2024%20H76%20A52%2052%200%200%200%2024%2076%20V180%20A52%2052%200%200%200%2076%20232%20H90%20A22.0%2022.0%200%200%200%2090%20188%20H76%20A8%208%200%200%201%2068%20180%20V76%20A8%208%200%200%201%2076%2068%20H90%20A22.0%2022.0%200%200%200%2090%2024%20Z%20M166%2024%20H180%20A52%2052%200%200%201%20232%2076%20V180%20A52%2052%200%200%201%20180%20232%20H166%20A22.0%2022.0%200%200%201%20166%20188%20H180%20A8%208%200%200%200%20188%20180%20V76%20A8%208%200%200%200%20180%2068%20H166%20A22.0%2022.0%200%200%201%20166%2024%20Z%22/%3E%3Cpolyline%20points%3D%2298%2C132%20119%2C153%20158%2C106%22%20fill%3D%22none%22%20stroke%3D%22%23C27A3E%22%20stroke-width%3D%2224%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/g%3E%3C/svg%3E">
+<meta name="theme-color" content="#141414">
+<meta name="description" content="Bölümünü ve KPSS puanını gir; hangi kamu kadrolarına başvurabileceğini, başvuramıyorsan nedenini şart şart gör.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Outfit:wght@600;700&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: masa düzeni — solda sabit profil fişi, sağda ilan dosyaları; her kadro durum şeridiyle işaretli. */
+/* Layout: tek sayfa, koyu sinematik zemin. Hero (ışık + örnek değerlendirme kartları) → kurum şeridi →
+   nasıl çalışır → araç (form + sonuçlar) → hatırlatma zaman çizelgesi → SSS → alt bilgi. Tek tema (koyu), bilinçli tercih. */
 :root {
-  --bg: #f3f5f3; --surface: #ffffff; --sunk: #eaeeeb; --ink: #16201c; --muted: #58655f; --line: #d9dfdb;
-  --accent: #1d5c52; --accent-ink: #ffffff; --accent-soft: #dcebe7;
-  --ok: #1f6f45; --ok-bg: #e2f2e8; --warn: #8f5300; --warn-bg: #fbefd9; --bad: #a8261e; --bad-bg: #fbe5e3;
-  --f-display: "Bricolage Grotesque", "Public Sans", system-ui, sans-serif;
-  --f-body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* CWTCH kimliği: mürekkep #141414, krem #F6F3EE, konyak #C27A3E. Neon ve parlak tonlar yok. */
+  --bg: #0c0c0b; --bg-2: #121211; --surface: #171716; --surface-2: #1f1e1c; --line: rgba(246,243,238,.08); --line-2: rgba(246,243,238,.15);
+  --ink: #f6f3ee; --muted: #aaa49a; --faint: #78736b; --body-2: #cfc9bf;
+  --konyak: #c27a3e; --accent: #d08a4f; --accent-ink: #141414; --glow-warm: #c27a3e; --glow-cool: #4a5a72;
+  --ok: #93cfa2; --ok-bg: rgba(147,207,162,.11); --warn: #e2b46e; --warn-bg: rgba(226,180,110,.11); --bad: #ec8b7f; --bad-bg: rgba(236,139,127,.11);
+  --f-display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --f-logo: "Outfit", "Bricolage Grotesque", system-ui, sans-serif;
+  --f-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --r: 10px;
+  --r: 14px; --r-s: 9px; --w: 1180px;
+  color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0f1412; --surface: #161d1a; --sunk: #1c2521; --ink: #e4ebe7; --muted: #95a29c; --line: #2a3430;
-  --accent: #6cc3b1; --accent-ink: #0c1a16; --accent-soft: #1d3530;
-  --ok: #72d39a; --ok-bg: #173225; --warn: #f0b45c; --warn-bg: #352713; --bad: #ff8f86; --bad-bg: #3a1c1a;
-  color-scheme: dark; } }
-:root[data-theme="dark"] {
-  --bg: #0f1412; --surface: #161d1a; --sunk: #1c2521; --ink: #e4ebe7; --muted: #95a29c; --line: #2a3430;
-  --accent: #6cc3b1; --accent-ink: #0c1a16; --accent-soft: #1d3530;
-  --ok: #72d39a; --ok-bg: #173225; --warn: #f0b45c; --warn-bg: #352713; --bad: #ff8f86; --bad-bg: #3a1c1a;
-  color-scheme: dark; }
-
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--f-body); }
-.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 56px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+/* hidden özniteliği display veren sınıflara da üstün gelsin (yayındaki sitede tarayıcı varsayılanı yetmez). */
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body { margin: 0; }
+img { max-width: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--f-body); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: rgba(12,12,11,.9); }
+a { color: var(--accent); }
+.kap { max-width: var(--w); margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.etiket-mono { font: 600 11.5px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 
-header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 24px; }
-.brand h1 { font: 700 clamp(28px, 4vw, 38px)/1.05 var(--f-display); letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
-.brand p { margin: 6px 0 0; color: var(--muted); max-width: 60ch; }
-.stamp { font: 500 12px/1.4 var(--f-mono); color: var(--muted); border: 1px dashed var(--line); border-radius: 6px; padding: 6px 10px; }
+/* ── Üst menü ─────────────────────────────── */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: rgba(12,12,11,.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.nav .kap { display: flex; align-items: center; gap: 24px; height: 62px; }
+.logo { display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; font: 700 17px var(--f-display); letter-spacing: -.01em; white-space: nowrap; }
+.logo { gap: 10px; align-items: center; }
+.logo .sembol { width: 30px; height: 30px; flex: none; }
+.logo-yazi { display: grid; line-height: 1; gap: 3px; }
+.logo-ad { font: 700 20px/1 var(--f-logo); letter-spacing: -.01em; color: var(--ink); }
+.logo-imza { font: 600 9.5px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+.cwtch-yatay { height: 22px; width: auto; display: block; }
+.alt-marka { display: grid; gap: 14px; }
+.cwtch-imza { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--faint); text-decoration: none; }
+.nav-linkler { display: flex; gap: 22px; margin-right: auto; }
+.nav-linkler a { color: var(--muted); text-decoration: none; font-size: 14.5px; font-weight: 500; }
+.nav-linkler a:hover { color: var(--ink); }
+.hesap-alani { display: flex; align-items: center; gap: 10px; font-size: 13.5px; min-width: 0; }
+.oturum-eposta { color: var(--muted); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: 600 14.5px var(--f-body); border-radius: 999px; padding: 10px 18px; cursor: pointer; text-decoration: none; border: 1px solid transparent; white-space: nowrap; transition: transform .15s ease, background .15s ease; }
+.btn:hover { transform: translateY(-1px); }
+.btn-ana { background: var(--ink); color: var(--bg); }
+.btn-cizgi { background: rgba(255,255,255,.03); color: var(--ink); border-color: var(--line-2); }
+.btn-kucuk { padding: 7px 14px; font-size: 13.5px; }
+.anahtar { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); cursor: pointer; }
+.anahtar input { accent-color: var(--accent); width: 15px; height: 15px; margin-top: 0; display: inline-block; }
+.metin-btn { background: none; border: 0; color: var(--muted); font: 500 13.5px var(--f-body); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 4px; }
+.durum-cubugu { text-align: center; font-size: 13.5px; color: var(--accent); background: rgba(194,122,62,.07); border-bottom: 1px solid var(--line); padding: 8px 16px; }
+@media (max-width: 900px) { .nav-linkler { display: none; } .nav .kap { justify-content: space-between; } .oturum-eposta { display: none; } }
 
-.grid { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 24px; align-items: start; }
-@media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+/* ── Hero ─────────────────────────────────── */
+.hero { position: relative; overflow: hidden; isolation: isolate; border-bottom: 1px solid var(--line); }
+.hero-zemin { position: absolute; inset: 0; z-index: -1; background:
+  radial-gradient(60% 70% at 8% 40%, rgba(194,122,62,.55), transparent 70%),
+  radial-gradient(55% 70% at 95% 30%, rgba(74,90,114,.55), transparent 70%),
+  radial-gradient(40% 40% at 50% 110%, rgba(194,122,62,.18), transparent 70%), var(--bg); }
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; }
+.hero::after { content: ""; position: absolute; inset: auto 0 0; height: 160px; background: linear-gradient(transparent, var(--bg)); z-index: -1; pointer-events: none; }
+.hero-ic { padding-block: 84px 72px; display: grid; justify-items: center; text-align: center; gap: 22px; }
+.rozet { display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line-2); background: rgba(12,12,11,.5); }
+.rozet i { width: 7px; height: 7px; border-radius: 2px; background: var(--konyak); }
+.hero h1 { font: 800 clamp(44px, 8.4vw, 96px)/.98 var(--f-display); letter-spacing: -.035em; margin: 0; text-wrap: balance; max-width: 13ch; }
+.hero h1 .vurgu { color: var(--accent); }
+.hero-alt { color: var(--body-2); font-size: clamp(16px, 1.6vw, 19px); max-width: 56ch; margin: 0; text-wrap: balance; }
+.hero-butonlar { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.hero-kanit { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: center; font-size: 14px; color: var(--muted); }
+.hero-kanit b { color: var(--ink); font: 600 15px var(--f-mono); font-variant-numeric: tabular-nums; }
+.kart-yigini { position: relative; width: min(760px, 100%); margin-top: 26px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; }
+.ornek-kart { background: rgba(23,23,22,.84); border: 1px solid var(--line-2); border-radius: var(--r); padding: 16px 18px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 30px 60px -30px rgba(0,0,0,.7); display: grid; gap: 10px; align-content: start; min-width: 0; }
+.ornek-kart:nth-child(1) { transform: rotate(-1.6deg) translateY(6px); }
+.ornek-kart:nth-child(2) { transform: rotate(1.4deg); }
+.ornek-bas { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.ornek-kurum { font-size: 12px; color: var(--muted); }
+.ornek-unvan { font: 700 16px/1.25 var(--f-display); }
+.ornek-kart ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ornek-kart li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; font-size: 13px; color: var(--body-2); }
+.ornek-not { grid-column: 1 / -1; text-align: center; font-size: 12px; color: var(--faint); margin: 4px 0 0; }
+@media (max-width: 640px) { .kart-yigini { grid-template-columns: 1fr; } .ornek-kart:nth-child(n) { transform: none; } .hero-ic { padding-block: 56px 48px; } }
 
-/* Profil fişi */
-form.profil { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 14px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
-@media (max-width: 860px) { form.profil { position: static; } }
-form.profil h2 { font: 600 13px/1 var(--f-body); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0; }
+/* ── Kayan şerit ─────────────────────────── */
+.serit-bant { border-bottom: 1px solid var(--line); overflow: hidden; padding-block: 16px; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.serit-ic { display: flex; gap: 40px; width: max-content; animation: kay 46s linear infinite; }
+.serit-ic span { font: 600 12.5px var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--faint); white-space: nowrap; }
+.serit-ic span::before { content: "◆"; margin-right: 40px; color: var(--line-2); }
+@keyframes kay { to { transform: translateX(-50%); } }
+
+/* ── Bölüm başlıkları ────────────────────── */
+section.blok { padding-block: 96px; scroll-margin-top: 70px; }
+.blok-bas { display: grid; gap: 12px; margin-bottom: 40px; max-width: 720px; }
+.blok-bas h2 { font: 700 clamp(32px, 4.4vw, 48px)/1.05 var(--f-display); letter-spacing: -.025em; margin: 0; text-wrap: balance; }
+.blok-bas p { margin: 0; color: var(--muted); font-size: 17px; max-width: 60ch; }
+@media (max-width: 640px) { section.blok { padding-block: 64px; } }
+
+/* Nasıl çalışır */
+.adimlar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.adim { border: 1px solid var(--line); border-radius: var(--r); padding: 24px; background: linear-gradient(180deg, var(--surface), var(--bg-2)); display: grid; gap: 10px; align-content: start; }
+.adim .no { font: 600 13px var(--f-mono); color: var(--accent); }
+.adim h3 { font: 700 21px/1.2 var(--f-display); margin: 0; letter-spacing: -.01em; }
+.adim p { margin: 0; color: var(--muted); font-size: 15px; }
+@media (max-width: 800px) { .adimlar { grid-template-columns: 1fr; } }
+
+/* ── Araç ─────────────────────────────────── */
+#arac { background: linear-gradient(180deg, var(--bg), var(--bg-2) 30%, var(--bg)); border-block: 1px solid var(--line); }
+.arac-grid { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 920px) { .arac-grid { grid-template-columns: 1fr; } }
+form.profil { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 22px; display: grid; gap: 16px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 78px); }
+@media (max-width: 920px) { form.profil { position: static; } }
+form.profil h3 { margin: 0; font: 700 19px var(--f-display); }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; min-width: 0; }
+fieldset + fieldset { border-top: 1px solid var(--line); padding-top: 16px; }
+legend { font: 600 11px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--faint); padding: 0; margin-bottom: 4px; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .row3 { display: grid; grid-template-columns: 1.1fr .9fr 1fr; gap: 10px; }
-label { display: grid; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--muted); min-width: 0; }
-input, select { font: 500 14.5px var(--f-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; width: 100%; min-width: 0; }
-input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.check { display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--ink); font-size: 13.5px; }
-.check input { width: auto; }
-.hint { font-size: 12px; color: var(--muted); margin: -6px 0 0; font-weight: 400; }
-fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
-fieldset + fieldset { border-top: 1px solid var(--line); padding-top: 14px; }
-legend { font-size: 12px; font-weight: 700; color: var(--ink); padding: 0; margin-bottom: 2px; }
-.ex { background: var(--accent-soft); color: var(--ink); border-radius: 7px; font-size: 12.5px; padding: 8px 10px; }
+label { display: block; font-size: 13px; font-weight: 600; color: var(--body-2); min-width: 0; }
+label > input, label > select { display: block; margin-top: 6px; }
+input, select { font: 500 15px var(--f-body); color: var(--ink); background: var(--bg-2); border: 1px solid var(--line-2); border-radius: var(--r-s); padding: 10px 12px; width: 100%; min-width: 0; }
+input::placeholder { color: var(--faint); }
+input:focus, select:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(194,122,62,.15); }
+.zorunlu { color: var(--bad); }
+.hint { font-size: 12.5px; color: var(--faint); margin: 0; font-weight: 400; }
+.check { display: flex; align-items: center; gap: 9px; font-weight: 500; font-size: 14px; }
+.check input { width: auto; accent-color: var(--accent); margin-top: 0; }
+.hata { color: var(--bad); font-size: 12.5px; font-weight: 600; margin: -2px 0 0; }
+.uyari-bolum { color: var(--warn); font-size: 12.5px; margin: -2px 0 0; }
+[aria-invalid="true"] { border-color: var(--bad); }
+.form-ozet { margin: 0; font-size: 13px; color: var(--bad); font-weight: 600; }
+.ara { font: 700 16px var(--f-body); color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 999px; padding: 13px 18px; cursor: pointer; width: 100%; transition: filter .15s; }
+.ara:hover { filter: brightness(1.08); }
 
-/* Özet ve filtre */
-.ozet { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.sayilar { display: flex; flex-wrap: wrap; gap: 8px; }
-.sayi { display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
-.sayi b { font: 500 16px var(--f-mono); }
+/* Bekleme ve sonuç alanı */
+.bekleme { border: 1px dashed var(--line-2); border-radius: var(--r); padding: 32px 28px; display: grid; gap: 14px; justify-items: start; background: rgba(255,255,255,.015); }
+.bekleme h3 { font: 700 24px/1.2 var(--f-display); margin: 0; letter-spacing: -.015em; }
+.bekleme p { margin: 0; color: var(--muted); max-width: 58ch; }
+.ornek-btn { font: 600 14px var(--f-body); color: var(--ink); background: transparent; border: 1px solid var(--line-2); border-radius: 999px; padding: 9px 16px; cursor: pointer; }
+.degisti { background: var(--warn-bg); color: var(--warn); border: 1px solid rgba(244,196,108,.25); border-radius: var(--r-s); padding: 10px 14px; font-size: 14px; font-weight: 600; margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.degisti button { font: 700 13px var(--f-body); color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.sayilar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.sayi { display: inline-flex; align-items: baseline; gap: 7px; padding: 7px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 600; }
+.sayi b { font: 600 16px var(--f-mono); }
 .sayi.ok { background: var(--ok-bg); color: var(--ok); } .sayi.warn { background: var(--warn-bg); color: var(--warn); } .sayi.bad { background: var(--bad-bg); color: var(--bad); }
-.filtre { display: inline-flex; background: var(--sunk); border-radius: 8px; padding: 3px; gap: 2px; }
-.filtre button { font: 600 13px var(--f-body); color: var(--muted); background: transparent; border: 0; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
-.filtre button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
-
-/* İlan dosyaları */
+.grup-baslik { font: 600 11.5px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 24px 0 12px; }
 .ilanlar { display: grid; gap: 14px; }
+.sonuc-bos { border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; background: var(--surface); color: var(--muted); }
+.sonuc-bos b { color: var(--ink); }
+details.uygun-olmayan { border: 1px solid var(--line); border-radius: var(--r); background: rgba(255,255,255,.015); margin-top: 18px; }
+details.uygun-olmayan > summary { padding: 14px 18px; cursor: pointer; list-style: none; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; gap: 10px; }
+details.uygun-olmayan > summary::-webkit-details-marker { display: none; }
+details.uygun-olmayan > summary::after { content: "Göster"; font: 600 12px var(--f-mono); color: var(--accent); }
+details.uygun-olmayan[open] > summary::after { content: "Gizle"; }
+details.uygun-olmayan .ilanlar { padding: 0 14px 14px; }
+.kapanan-not { margin: 18px 0 0; font-size: 13px; color: var(--faint); }
+
 article.ilan { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
-.ilan-bas { padding: 14px 16px 12px; display: grid; gap: 6px; }
-.ilan-ust { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.ilan-bas { padding: 16px 18px 14px; display: grid; gap: 8px; position: relative; }
+.ilan-ust { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 12.5px; color: var(--muted); padding-right: 110px; }
 .kurum { font-weight: 700; color: var(--ink); }
-.ilan h3 { font: 600 19px/1.25 var(--f-display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
-.etiket { font: 600 11.5px/1 var(--f-body); padding: 5px 8px; border-radius: 5px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.ilan h4 { font: 700 20px/1.25 var(--f-display); margin: 0; text-wrap: balance; letter-spacing: -.01em; padding-right: 110px; }
+.etiket { font: 600 11.5px/1 var(--f-body); padding: 5px 9px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--muted); white-space: nowrap; }
 .zaman.acik { border-color: transparent; background: var(--accent); color: var(--accent-ink); }
 .zaman.yakinda { border-color: var(--accent); color: var(--accent); }
 .zaman.kapandi { text-decoration: line-through; }
-.zaman.bekleniyor { border-style: dashed; color: var(--ink); }
-.genel { margin: 2px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
-
-.kadro { border-top: 1px solid var(--line); display: grid; grid-template-columns: 4px minmax(0, 1fr); }
+.genel { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13.5px; }
+.kaydet { position: absolute; top: 14px; right: 16px; font: 600 13px var(--f-body); color: var(--ink); background: transparent; border: 1px solid var(--line-2); border-radius: 999px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+.kaydet[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+@media (max-width: 560px) { .ilan-ust, .ilan h4 { padding-right: 0; } .kaydet { position: static; justify-self: start; order: 3; } }
+.kadro { border-top: 1px solid var(--line); display: grid; grid-template-columns: 3px minmax(0, 1fr); }
 .serit { background: var(--line); }
-.kadro.uygun .serit { background: var(--ok); } .kadro.kontrol .serit { background: var(--warn); } .kadro.uygun_degil .serit { background: var(--bad); opacity: .55; }
-.kadro-ic { padding: 12px 16px; display: grid; gap: 6px; min-width: 0; }
+.kadro.uygun .serit { background: var(--ok); } .kadro.kontrol .serit { background: var(--warn); } .kadro.uygun_degil .serit { background: var(--bad); opacity: .5; }
+.kadro-ic { padding: 13px 18px; display: grid; gap: 6px; min-width: 0; }
 .kadro-bas { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; justify-content: space-between; }
-.unvan { font-weight: 700; font-size: 15px; }
-.meta { font-size: 12.5px; color: var(--muted); }
-.meta .num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; color: var(--ink); }
-.hukum { font: 700 12px/1 var(--f-body); padding: 5px 8px; border-radius: 5px; white-space: nowrap; }
+.unvan { font-weight: 700; font-size: 15.5px; }
+.meta { font-size: 13px; color: var(--muted); }
+.meta .num { font-family: var(--f-mono); color: var(--ink); }
+.hukum { font: 700 12px/1 var(--f-body); padding: 5px 9px; border-radius: 999px; white-space: nowrap; }
 .uygun .hukum { background: var(--ok-bg); color: var(--ok); } .kontrol .hukum { background: var(--warn-bg); color: var(--warn); } .uygun_degil .hukum { background: var(--bad-bg); color: var(--bad); }
-.neden { margin: 0; font-size: 13.5px; }
+.neden { margin: 0; font-size: 14px; }
 .uygun_degil .neden { color: var(--bad); } .kontrol .neden { color: var(--warn); }
-details > summary { cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--accent); list-style: none; width: fit-content; }
-details > summary::-webkit-details-marker { display: none; }
-details > summary::before { content: "▸ "; } details[open] > summary::before { content: "▾ "; }
+.kadro details > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--accent); list-style: none; width: fit-content; }
+.kadro details > summary::-webkit-details-marker { display: none; }
+.kadro details > summary::before { content: "+ "; } .kadro details[open] > summary::before { content: "− "; }
 ul.kurallar { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
-ul.kurallar li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; font-size: 13px; }
-.ik { font: 700 12px/18px var(--f-mono); text-align: center; border-radius: 4px; }
+ul.kurallar li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; font-size: 13.5px; color: var(--body-2); }
+.ik { font: 700 11px/18px var(--f-mono); text-align: center; border-radius: 5px; height: 18px; align-self: start; margin-top: 2px; }
 .ik.uygun { color: var(--ok); background: var(--ok-bg); } .ik.kontrol { color: var(--warn); background: var(--warn-bg); } .ik.uygun_degil { color: var(--bad); background: var(--bad-bg); }
-.puan { font: 500 12px var(--f-mono); color: var(--accent); background: var(--accent-soft); border-radius: 5px; padding: 3px 7px; }
-
-.kapali-grup { border-top: 1px solid var(--line); padding: 10px 16px; background: var(--sunk); }
-.kapali-grup > summary { color: var(--muted); }
-.kapali-grup .kadro { border-top: 1px dashed var(--line); margin: 0 -16px; }
+.puan { font: 500 12px var(--f-mono); color: var(--accent); background: rgba(194,122,62,.1); border-radius: 999px; padding: 3px 8px; }
+.kapali-grup { border-top: 1px solid var(--line); padding: 10px 18px; background: rgba(0,0,0,.18); }
+.kapali-grup > summary { color: var(--muted); font-size: 13px; font-weight: 600; cursor: pointer; }
+.kapali-grup .kadro { border-top: 1px dashed var(--line); margin: 0 -18px; }
 .kapali-grup .kadro:first-of-type { margin-top: 10px; }
-.kaynak { padding: 10px 16px 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 12px; }
-.kaynak a { color: var(--accent); overflow-wrap: anywhere; }
-/* Kaydet butonu */
-.ilan-bas { position: relative; }
-.ilan-bas h3 { padding-right: 104px; }
-.kaydet { position: absolute; top: 12px; right: 14px; font: 600 12.5px var(--f-body); color: var(--accent); background: transparent; border: 1px solid var(--accent); border-radius: 7px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
-.kaydet[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
-@media (max-width: 520px) { .ilan-bas h3 { padding-right: 0; } .kaydet { position: static; justify-self: start; } }
+.kaynak { padding: 10px 18px 12px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.kaynak a { overflow-wrap: anywhere; }
 
 /* Takip listesi */
-section.takip { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); margin-bottom: 18px; }
-.takip-bas { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; padding: 14px 16px 10px; }
-.takip-bas h2 { font: 600 19px/1.2 var(--f-display); margin: 0; letter-spacing: -0.01em; }
-.takip-bas p { margin: 0; font-size: 12.5px; color: var(--muted); }
-.takip-bos { padding: 0 16px 16px; color: var(--muted); font-size: 13.5px; margin: 0; }
-.takip-satir { border-top: 1px solid var(--line); padding: 12px 16px; display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; }
-.geri-sayim { text-align: center; border-radius: 8px; background: var(--sunk); padding: 6px 4px; }
-.geri-sayim b { display: block; font: 500 22px/1.1 var(--f-mono); font-variant-numeric: tabular-nums; }
+section.takip { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); margin-bottom: 22px; }
+.takip-bas { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 12px; padding: 16px 18px 12px; }
+.takip-bas h3 { font: 700 19px/1.2 var(--f-display); margin: 0; }
+.takip-bas p { margin: 0; font-size: 13px; color: var(--muted); }
+.takip-bos { padding: 0 18px 16px; color: var(--muted); font-size: 14px; margin: 0; }
+.takip-satir { border-top: 1px solid var(--line); padding: 13px 18px; display: grid; grid-template-columns: 66px minmax(0, 1fr) auto; gap: 4px 14px; align-items: start; }
+.geri-sayim { text-align: center; border-radius: 10px; background: var(--surface-2); padding: 7px 4px; }
+.geri-sayim b { display: block; font: 600 22px/1.1 var(--f-mono); font-variant-numeric: tabular-nums; }
 .geri-sayim span { font-size: 11px; color: var(--muted); }
-.geri-sayim.acil { background: var(--bad-bg); color: var(--bad); } .geri-sayim.acil span { color: var(--bad); }
-.takip-satir .t-baslik { font-weight: 700; font-size: 14.5px; }
-.takip-satir .t-alt { font-size: 12.5px; color: var(--muted); }
-.cikar { font: 600 12px var(--f-body); color: var(--muted); background: transparent; border: 0; cursor: pointer; padding: 4px; text-decoration: underline; }
-ul.plan { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; grid-column: 2 / -1; }
-ul.plan li { display: grid; grid-template-columns: 88px minmax(0, 1fr) auto; gap: 8px; font-size: 13px; align-items: baseline; }
-.p-tarih { font: 500 12px var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
-.paket { font: 700 10.5px/1 var(--f-body); letter-spacing: .06em; text-transform: uppercase; padding: 4px 6px; border-radius: 4px; }
+.geri-sayim.acil { background: var(--bad-bg); color: var(--bad); }
+.t-baslik { font-weight: 700; font-size: 15px; }
+.t-alt { font-size: 13px; color: var(--muted); }
+.cikar { font: 600 12.5px var(--f-body); color: var(--muted); background: transparent; border: 0; cursor: pointer; padding: 4px; text-decoration: underline; }
+ul.plan { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 5px; grid-column: 2 / -1; }
+ul.plan li { display: grid; grid-template-columns: 82px minmax(0, 1fr) auto; gap: 8px; font-size: 13.5px; align-items: baseline; color: var(--body-2); }
+.p-tarih { font: 500 12px var(--f-mono); color: var(--muted); }
+.paket { font: 700 10px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; padding: 4px 7px; border-radius: 999px; }
 .paket.ucretsiz { background: var(--ok-bg); color: var(--ok); }
 .paket.plus { border: 1px dashed var(--accent); color: var(--accent); }
-li.plus-li { color: var(--muted); }
-.takip-not { border-top: 1px solid var(--line); padding: 10px 16px; font-size: 12px; color: var(--muted); background: var(--sunk); border-radius: 0 0 var(--r) var(--r); }
-@media (max-width: 520px) {
-  .takip-satir { grid-template-columns: 56px minmax(0, 1fr); }
+li.plus-li { color: var(--faint); }
+.takip-not { border-top: 1px solid var(--line); padding: 11px 18px; font-size: 13px; color: var(--muted); }
+@media (max-width: 560px) {
+  .takip-satir { grid-template-columns: 58px minmax(0, 1fr); }
   .takip-satir .cikar { grid-column: 2; justify-self: start; }
   ul.plan { grid-column: 1 / -1; }
-  ul.plan li { grid-template-columns: 76px minmax(0, 1fr); }
+  ul.plan li { grid-template-columns: 72px minmax(0, 1fr); }
   ul.plan li .paket { grid-column: 2; justify-self: start; }
 }
-/* Hesap (yalnızca web sürümünde görünür) */
-.hesap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
-.hesap input[type="email"] { width: 220px; max-width: 100%; }
-.hesap .btn { font: 600 13px var(--f-body); color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 7px; padding: 8px 12px; cursor: pointer; }
-.hesap .btn.ikincil { color: var(--accent); background: transparent; border: 1px solid var(--accent); }
-.hesap .durum-yazi { color: var(--muted); }
-/* Araştır akışı */
-.zorunlu { color: var(--bad); font-weight: 700; }
-.hata { color: var(--bad); font-size: 12px; font-weight: 600; margin: 0; }
-.uyari-bolum { color: var(--warn); font-size: 12px; font-weight: 500; margin: 0; }
-[aria-invalid="true"] { border-color: var(--bad); }
-.ara { font: 700 15px var(--f-body); color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 8px; padding: 11px 14px; cursor: pointer; width: 100%; }
-.ara:hover { filter: brightness(1.06); }
-.form-ozet { margin: -4px 0 0; font-size: 12.5px; color: var(--bad); font-weight: 600; }
-.bekleme { background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); padding: 28px 22px; display: grid; gap: 12px; justify-items: start; }
-.bekleme h2 { font: 600 21px/1.25 var(--f-display); margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-.bekleme p { margin: 0; color: var(--muted); max-width: 58ch; }
-.bekleme ol { margin: 0; padding-left: 20px; color: var(--ink); display: grid; gap: 4px; font-size: 14px; }
-.ornek-btn { font: 600 13px var(--f-body); color: var(--accent); background: transparent; border: 1px solid var(--accent); border-radius: 7px; padding: 7px 12px; cursor: pointer; }
-.degisti { background: var(--warn-bg); color: var(--warn); border-radius: 8px; padding: 9px 12px; font-size: 13px; font-weight: 600; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
-.degisti button { font: 700 12.5px var(--f-body); color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
-.bos { padding: 28px; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--line); border-radius: var(--r); }
-footer { margin-top: 28px; font-size: 12.5px; color: var(--muted); max-width: 75ch; }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-</style>
 
-</head>
+/* ── Hatırlatma bölümü ───────────────────── */
+.hatirlatma-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 40px; align-items: center; }
+@media (max-width: 860px) { .hatirlatma-grid { grid-template-columns: 1fr; } }
+.cizelge { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); padding: 26px 24px; display: grid; gap: 18px; min-width: 0; }
+.cizelge-bas { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.cizelge-bas b { font: 700 17px var(--f-display); }
+.cizgi { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding-top: 28px; }
+.cizgi::before { content: ""; position: absolute; left: 6px; right: 6px; top: 7px; height: 2px; background: var(--line-2); }
+.nokta { position: relative; display: grid; gap: 3px; font-size: 13px; color: var(--muted); }
+.nokta::before { content: ""; position: absolute; top: -27px; left: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); border: 2px solid var(--line-2); }
+.nokta.gonder::before { border-color: var(--accent); background: var(--accent);  }
+.nokta.son::before { border-color: var(--bad); background: var(--bad); }
+.nokta b { font: 600 13px var(--f-mono); color: var(--ink); }
+.eposta-onizleme { border: 1px solid var(--line-2); border-radius: var(--r-s); padding: 12px 14px; background: var(--bg-2); font-size: 13.5px; display: grid; gap: 3px; }
+.eposta-onizleme .kimden { font-size: 12px; color: var(--faint); }
+.ozellik-liste { list-style: none; margin: 20px 0 26px; padding: 0; display: grid; gap: 10px; }
+.ozellik-liste li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; color: var(--body-2); }
+.ozellik-liste li::before { content: "✓"; font: 700 13px/22px var(--f-mono); color: var(--accent); }
+
+/* ── SSS ─────────────────────────────────── */
+.sss { display: grid; gap: 10px; max-width: 820px; }
+.sss details { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+.sss summary { cursor: pointer; padding: 18px 20px; font: 600 17px var(--f-body); list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+.sss summary::-webkit-details-marker { display: none; }
+.sss summary::after { content: "+"; font: 500 22px/1 var(--f-mono); color: var(--accent); }
+.sss details[open] summary::after { content: "−"; }
+.sss details p { margin: 0; padding: 0 20px 18px; color: var(--muted); max-width: 68ch; }
+
+/* ── Alt bilgi ───────────────────────────── */
+footer.alt { border-top: 1px solid var(--line); padding-block: 40px 56px; color: var(--faint); font-size: 13.5px; }
+footer.alt .kap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 18px; }
+footer.alt p { margin: 0; max-width: 62ch; }
+
+/* ── Karşılama penceresi ─────────────────── */
+.perde { position: fixed; inset: 0; z-index: 100; background: rgba(3,4,6,.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: grid; place-items: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); overflow-y: auto; }
+.pencere { width: min(480px, 100%); background: var(--surface); border: 1px solid var(--line-2); border-radius: 20px; overflow: hidden; box-shadow: 0 40px 120px -20px rgba(0,0,0,.8); animation: belir .25s ease-out; }
+@keyframes belir { from { opacity: 0; transform: translateY(10px) scale(.98); } }
+.pencere-ust { padding: 28px 28px 0; background: radial-gradient(80% 120% at 0% 0%, rgba(194,122,62,.28), transparent 60%), radial-gradient(80% 120% at 100% 0%, rgba(74,90,114,.32), transparent 60%); }
+.takvim { display: inline-grid; width: 64px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line-2); text-align: center; margin-bottom: 18px; background: var(--bg-2); }
+.takvim span { font: 700 10px/1 var(--f-mono); letter-spacing: .1em; background: var(--bad); color: #141414; padding: 5px 0; }
+.takvim b { font: 800 26px/1.4 var(--f-display); }
+.pencere h2 { font: 800 28px/1.1 var(--f-display); letter-spacing: -.02em; margin: 0 0 10px; text-wrap: balance; }
+.pencere-ust p { margin: 0; color: var(--body-2); }
+.pencere-govde { padding: 22px 28px 26px; display: grid; gap: 12px; }
+.pencere-govde form { display: grid; gap: 10px; }
+.pencere-govde .btn { width: 100%; }
+.pencere-mesaj { margin: 0; font-size: 14px; color: var(--accent); }
+.pencere-mesaj.hata-mesaj { color: var(--bad); }
+.ayrac { display: flex; align-items: center; gap: 12px; color: var(--faint); font-size: 12px; }
+.ayrac::before, .ayrac::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.kucuk-not { margin: 0; font-size: 12.5px; color: var(--faint); text-align: center; }
+</style></head>
 <body>
-<div class="wrap">
-  <header class="top">
-    <div class="brand">
-      <h1>Kadro Eşleştir</h1>
-      <p>Profilini gir; hangi kamu kadrosuna başvurabileceğini, başvuramıyorsan nedenini kural kural gör.</p>
+
+
+<div id="durumCubugu" class="durum-cubugu" role="status" hidden></div>
+<header class="nav">
+  <div class="kap">
+    <a class="logo" href="#ust" aria-label="Kadroya, bir CWTCH ürünü"><svg class="sembol" viewBox="0 0 256 256" aria-hidden="true"><path fill="var(--ink)" d="M90 24 H76 A52 52 0 0 0 24 76 V180 A52 52 0 0 0 76 232 H90 A22.0 22.0 0 0 0 90 188 H76 A8 8 0 0 1 68 180 V76 A8 8 0 0 1 76 68 H90 A22.0 22.0 0 0 0 90 24 Z M166 24 H180 A52 52 0 0 1 232 76 V180 A52 52 0 0 1 180 232 H166 A22.0 22.0 0 0 1 166 188 H180 A8 8 0 0 0 188 180 V76 A8 8 0 0 0 180 68 H166 A22.0 22.0 0 0 1 166 24 Z"/><polyline points="104,131 121,148 153,111" fill="none" stroke="var(--konyak)" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-yazi"><span class="logo-ad">Kadroya</span><span class="logo-imza">by CWTCH</span></span></a>
+    <nav class="nav-linkler" aria-label="Sayfa içi">
+      <a href="#nasil">Nasıl çalışır</a>
+      <a href="#arac">Kadronu bul</a>
+      <a href="#hatirlatma">Hatırlatma</a>
+      <a href="#sss">SSS</a>
+    </nav>
+    <div class="hesap-alani">
+      <button type="button" class="btn btn-cizgi btn-kucuk" id="hatirlatmaBtn">Hatırlatma al</button>
+      <div id="oturum" class="hesap-alani" hidden>
+        <span id="oturumEposta" class="oturum-eposta"></span>
+        <label class="anahtar" for="bildirimAcik" title="E-posta hatırlatmaları"><input id="bildirimAcik" type="checkbox" checked> E-posta</label>
+        <button type="button" class="metin-btn" id="cikis">Çıkış</button>
+      </div>
     </div>
-    <div class="stamp" id="stamp">Prototip · ilan verisi 3 Kasım 2026</div>
-    <div class="hesap" id="hesap" hidden>
-      <form id="girisForm" class="hesap">
-        <label for="girisEposta" class="durum-yazi">Hatırlatma almak için giriş yap</label>
-        <input id="girisEposta" type="email" required placeholder="e-posta adresin" autocomplete="email">
-        <button class="btn" type="submit">Giriş bağlantısı gönder</button>
+  </div>
+</header>
+
+<main id="ust">
+  <section class="hero" aria-labelledby="heroBaslik">
+    <div class="hero-zemin"></div>
+    <canvas id="isik" aria-hidden="true"></canvas>
+    <div class="kap hero-ic">
+      <span class="rozet etiket-mono"><i></i>KPSS ile kamu kadroları</span>
+      <h1 id="heroBaslik">Kılavuzu okuma. <span class="vurgu">Kadronu bul.</span></h1>
+      <p class="hero-alt">Bölümünü, KPSS puanını ve birkaç bilgini gir. Açık ilanlardaki her kadronun şartlarını tek tek kontrol edip nereye başvurabileceğini, başvuramıyorsan nedenini gösterelim.</p>
+      <div class="hero-butonlar">
+        <a class="btn btn-ana" href="#arac">Bilgilerimi gir →</a>
+        <a class="btn btn-cizgi" href="#nasil">Nasıl çalışır</a>
+      </div>
+      <div class="hero-kanit" id="heroKanit"></div>
+      <div class="kart-yigini" id="ornekKartlar" aria-label="Örnek değerlendirme"></div>
+    </div>
+  </section>
+
+  <div class="serit-bant" aria-hidden="true"><div class="serit-ic" id="serit"></div></div>
+
+  <section class="blok" id="nasil" aria-labelledby="nasilBaslik">
+    <div class="kap">
+      <div class="blok-bas">
+        <span class="etiket-mono">Nasıl çalışır</span>
+        <h2 id="nasilBaslik">40 sayfalık kılavuz yerine üç adım</h2>
+        <p>Kamu ilanlarında bölüm adı tabloda birebir aranır, yaş sınırı doğum yılına göre hesaplanır, puan türü ve yılı ayrıca kontrol edilir. Bunları senin yerine yapıyoruz.</p>
+      </div>
+      <div class="adimlar">
+        <div class="adim"><span class="no">01</span><h3>Bilgilerini gir</h3><p>Diplomandaki bölüm adı, doğum tarihi, KPSS puanın ve varsa ALES, YDS ve iş deneyimin.</p></div>
+        <div class="adim"><span class="no">02</span><h3>Kadro kadro kontrol</h3><p>Her ilandaki her kadronun bölüm, puan, yaş, askerlik ve deneyim şartı tek tek değerlendirilir.</p></div>
+        <div class="adim"><span class="no">03</span><h3>Kaydet, kaçırma</h3><p>Önemli ilanları kaydet. İstersen son başvurudan önce e-postayla hatırlatalım.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blok" id="arac" aria-labelledby="aracBaslik">
+    <div class="kap">
+      <div class="blok-bas">
+        <span class="etiket-mono">Kadronu bul</span>
+        <h2 id="aracBaslik">Hangi kadrolara başvurabilirsin?</h2>
+      </div>
+      <div class="arac-grid">
+        <form class="profil" id="profil" autocomplete="off" novalidate>
+          <h3>Bilgilerin</h3>
+          <fieldset>
+            <legend>Eğitim</legend>
+            <label for="bolum">Bölüm, diplomadaki adıyla <span class="zorunlu" aria-hidden="true">*</span>
+              <input id="bolum" list="bolumListe" placeholder="Yazmaya başla, listeden seç" aria-describedby="bolumHata bolumUyari">
+            </label>
+            <p class="hata" id="bolumHata" hidden></p>
+            <p class="uyari-bolum" id="bolumUyari" hidden>Bu ad listemizde yok. Kamu ilanlarında bölüm adı birebir aranır; diplomandaki adla aynı yazdığından emin ol.</p>
+            <datalist id="bolumListe"></datalist>
+            <label for="ogrenim">Öğrenim düzeyi <span class="zorunlu" aria-hidden="true">*</span>
+              <select id="ogrenim" aria-describedby="ogrenimHata">
+                <option value="" selected disabled>Seç</option>
+                <option value="ortaogretim">Ortaöğretim (lise)</option>
+                <option value="onlisans">Ön lisans</option>
+                <option value="lisans">Lisans</option>
+                <option value="yukseklisans">Yüksek lisans</option>
+                <option value="doktora">Doktora</option>
+              </select>
+            </label>
+            <p class="hata" id="ogrenimHata" hidden></p>
+          </fieldset>
+          <fieldset>
+            <legend>Kişisel</legend>
+            <div class="row">
+              <label for="dogum">Doğum tarihi <span class="zorunlu" aria-hidden="true">*</span>
+                <input id="dogum" type="date" aria-describedby="dogumHata"></label>
+              <label for="cinsiyet">Cinsiyet <span class="zorunlu" aria-hidden="true">*</span>
+                <select id="cinsiyet" aria-describedby="cinsiyetHata">
+                  <option value="" selected disabled>Seç</option><option value="E">Erkek</option><option value="K">Kadın</option>
+                </select>
+              </label>
+            </div>
+            <p class="hata" id="dogumHata" hidden></p>
+            <p class="hata" id="cinsiyetHata" hidden></p>
+            <label for="askerlik" id="askerlikAlan" hidden>Askerlik durumu <span class="zorunlu" aria-hidden="true">*</span>
+              <select id="askerlik" aria-describedby="askerlikHata">
+                <option value="" selected disabled>Seç</option>
+                <option value="yapildi">Yapıldı</option>
+                <option value="tecilli">Tecilli</option>
+                <option value="muaf">Muaf</option>
+                <option value="yedek">Yedek sınıf</option>
+                <option value="yok">Yapılmadı (tecil yok)</option>
+              </select>
+            </label>
+            <p class="hata" id="askerlikHata" hidden></p>
+          </fieldset>
+          <fieldset>
+            <legend>Sınavlar</legend>
+            <div class="row3">
+              <label for="kpssPuan">KPSS puanı <input id="kpssPuan" type="number" step="0.01" min="0" max="100" placeholder="yok" aria-describedby="kpssHata"></label>
+              <label for="kpssTur">Tür
+                <select id="kpssTur"><option>P3</option><option>P93</option><option>P94</option><option>P4</option></select>
+              </label>
+              <label for="kpssYil">Yıl
+                <select id="kpssYil"><option>2026</option><option>2025</option><option>2024</option></select>
+              </label>
+            </div>
+            <p class="hata" id="kpssHata" hidden></p>
+            <p class="hint">Lisans P3, ön lisans P93, lise P94 kullanır.</p>
+            <div class="row">
+              <label for="ales">ALES EA <input id="ales" type="number" step="0.01" min="0" max="100" placeholder="yok"></label>
+              <label for="yds">YDS (İngilizce) <input id="yds" type="number" step="0.25" min="0" max="100" placeholder="yok"></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>İş deneyimi</legend>
+            <label for="deneyim">SGK'lı bilişim deneyimi (yıl) <input id="deneyim" type="number" step="0.5" min="0" max="40" value="0"></label>
+            <p class="hint">Mezuniyetten sonra, işçi statüsünde bilişim personeli olarak. Bilişim dışı çalıştıysan 0 bırak.</p>
+            <label class="check" for="kamu"><input id="kamu" type="checkbox"> Şu an 657'ye tabi bir kadroda çalışıyorum</label>
+          </fieldset>
+          <p class="form-ozet" id="formOzet" role="alert" hidden></p>
+          <button class="ara" type="submit" id="araBtn">Araştır</button>
+        </form>
+
+        <div id="sonuclar">
+          <div class="bekleme" id="bekleme">
+            <h3>Sonuçların burada görünecek</h3>
+            <p>Soldaki bilgileri doldurup Araştır'a bas. Sadece başvurusu açık ya da yakında açılacak ilanları gösteririz; sana uymayanları ayrı bir bölümde, nedenleriyle birlikte tutarız.</p>
+            <button type="button" class="ornek-btn" id="ornekBtn">Örnek profille dene</button>
+          </div>
+
+          <div id="sonucAlani" hidden>
+            <div class="degisti" id="degisti" hidden>
+              <span>Bilgilerin değişti. Sonuçlar eski bilgilere göre.</span>
+              <button type="button" id="degistiBtn">Yeniden araştır</button>
+            </div>
+            <section class="takip" id="takip" aria-labelledby="takipBaslik">
+              <div class="takip-bas">
+                <h3 id="takipBaslik">Takip listem</h3>
+                <p id="takipAlt"></p>
+              </div>
+              <div id="takipIcerik"></div>
+              <div class="takip-not" id="takipNot"></div>
+            </section>
+            <div class="sayilar" id="sayilar"></div>
+            <div id="ilanAlani"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blok" id="hatirlatma" aria-labelledby="hatirlatmaBaslik">
+    <div class="kap hatirlatma-grid">
+      <div>
+        <div class="blok-bas" style="margin-bottom:0">
+          <span class="etiket-mono">Hatırlatma</span>
+          <h2 id="hatirlatmaBaslik">Son başvuru gününü kaçırma</h2>
+          <p>Kaydettiğin ilanlar için e-posta gönderiyoruz. Aynı gün birden fazla ilanın varsa hepsi tek bir e-postada gelir.</p>
+        </div>
+        <ul class="ozellik-liste">
+          <li>Başvuru açıldığı gün haber</li>
+          <li>Son başvurudan 3 gün ve 1 gün önce hatırlatma</li>
+          <li>Son gün sabahı son uyarı</li>
+        </ul>
+        <button type="button" class="btn btn-ana" id="hatirlatmaBtn2">E-postamla hatırlatma al</button>
+      </div>
+      <div class="cizelge" aria-label="Örnek hatırlatma takvimi">
+        <div class="cizelge-bas"><b id="cizelgeIlan">Örnek ilan</b><span class="etiket-mono" id="cizelgeSon"></span></div>
+        <div class="cizgi" id="cizelgeNoktalar"></div>
+        <div class="eposta-onizleme">
+          <span class="kimden">Kadroya · 07:47</span>
+          <b id="cizelgeKonu">Bugün son gün</b>
+          <span class="t-alt" id="cizelgeAlt"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blok" id="sss" aria-labelledby="sssBaslik">
+    <div class="kap">
+      <div class="blok-bas">
+        <span class="etiket-mono">Sık sorulanlar</span>
+        <h2 id="sssBaslik">Merak ettiklerin</h2>
+      </div>
+      <div class="sss">
+        <details><summary>Bilgilerim nereye gidiyor?</summary><p>Eşleştirme senin tarayıcında yapılır. Giriş yapmazsan bilgilerin hiçbir yere gönderilmez. Hatırlatma için giriş yaparsan profilin ve takip listen yalnızca sana gönderilecek e-postaları hesaplamak için saklanır; hesabını silince hepsi silinir.</p></details>
+        <details><summary>Bölümüm listede yok, ne yapmalıyım?</summary><p>Diplomandaki adı birebir yaz. Kamu ilanlarında "benzer bölüm" kabul edilmez; bölüm adı ilandaki tabloda nasıl geçiyorsa öyle aranır. Adın listemizde olmaması, hiçbir ilanda geçmediği anlamına gelebilir.</p></details>
+        <details><summary>İlanlar ne kadar güncel?</summary><p>İlanları resmi kılavuzlardan ve duyurulardan derliyoruz. Her ilanın üstünde kaynağı ve "resmi metin" ya da "haber özeti" etiketi var. Başvurmadan önce kurumun resmi ilan metnini mutlaka oku.</p></details>
+        <details><summary>Ücretli mi?</summary><p>Eşleştirme ve son başvuru hatırlatmaları ücretsiz. Sınav sonuçlarını ve sonraki dönemi takip eden ek hatırlatmalar ileride ayrı bir paket olarak gelecek.</p></details>
+        <details><summary>Resmi bir kurum musunuz?</summary><p>Hayır. Kadroya, CWTCH'in geliştirdiği bağımsız bir araç; hiçbir kamu kurumuyla bağlantısı yok. Başvurular kurumların kendi sistemlerinden ya da Kariyer Kapısı'ndan yapılır.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="alt">
+  <div class="kap">
+    <div class="alt-marka">
+      <a class="logo" href="#ust" aria-label="Kadroya, bir CWTCH ürünü"><svg class="sembol" viewBox="0 0 256 256" aria-hidden="true"><path fill="var(--ink)" d="M90 24 H76 A52 52 0 0 0 24 76 V180 A52 52 0 0 0 76 232 H90 A22.0 22.0 0 0 0 90 188 H76 A8 8 0 0 1 68 180 V76 A8 8 0 0 1 76 68 H90 A22.0 22.0 0 0 0 90 24 Z M166 24 H180 A52 52 0 0 1 232 76 V180 A52 52 0 0 1 180 232 H166 A22.0 22.0 0 0 1 166 188 H180 A8 8 0 0 0 188 180 V76 A8 8 0 0 0 180 68 H166 A22.0 22.0 0 0 1 166 24 Z"/><polyline points="104,131 121,148 153,111" fill="none" stroke="var(--konyak)" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="logo-yazi"><span class="logo-ad">Kadroya</span><span class="logo-imza">by CWTCH</span></span></a>
+      <span class="cwtch-imza">Bir <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 721 256" class="cwtch-yatay" role="img" aria-label="CWTCH">
+<g id="symbol"><path fill="#F6F3EE" d="M90 24 H76 A52 52 0 0 0 24 76 V180 A52 52 0 0 0 76 232 H90 A22.0 22.0 0 0 0 90 188 H76 A8 8 0 0 1 68 180 V76 A8 8 0 0 1 76 68 H90 A22.0 22.0 0 0 0 90 24 Z M166 24 H180 A52 52 0 0 1 232 76 V180 A52 52 0 0 1 180 232 H166 A22.0 22.0 0 0 1 166 188 H180 A8 8 0 0 0 188 180 V76 A8 8 0 0 0 180 68 H166 A22.0 22.0 0 0 1 166 24 Z"/><rect x="100" y="100" width="56" height="56" rx="9" fill="#C27A3E"/></g><g id="wordmark" fill="#F6F3EE" transform="translate(316 69.1) scale(0.46)"><path fill-rule="nonzero" d="M139.45 74.47 A80 80 0 1 0 139.45 181.53 L115.67 160.12 A48 48 0 1 1 115.67 95.88 Z M164 48 L202 48 L245 208 L207 208 Z M250 48 L288 48 L245 208 L207 208 Z M250 48 L288 48 L331 208 L293 208 Z M336 48 L374 48 L331 208 L293 208 Z  M390 48 H534 V80 H478 V208 H446 V80 H390 Z M689.45 74.47 A80 80 0 1 0 689.45 181.53 L665.67 160.12 A48 48 0 1 1 665.67 95.88 Z M720 48 H752 V112 H824 V48 H856 V208 H824 V144 H752 V208 H720 Z"/></g>
+</svg> ürünü</span>
+    </div>
+    <p>Kadroya bağımsız bir eşleştirme aracıdır, resmi kurum değildir. Sonuçlar bilgilendirme amaçlıdır; başvurmadan önce ilanın resmi metnini oku.</p>
+  </div>
+</footer>
+
+<div class="perde" id="karsilama" role="dialog" aria-modal="true" aria-labelledby="karsilamaBaslik" hidden>
+  <div class="pencere">
+    <div class="pencere-ust">
+      <div class="takvim" aria-hidden="true"><span>SON GÜN</span><b>16</b></div>
+      <h2 id="karsilamaBaslik">Başvuru tarihlerini sana hatırlatalım mı?</h2>
+      <p>Kaydettiğin ilanlar için başvuru açıldığında, son günden 3 gün ve 1 gün önce ve son gün sabahı e-posta gönderelim.</p>
+    </div>
+    <div class="pencere-govde">
+      <form id="girisForm" novalidate>
+        <label for="girisEposta">E-posta adresin
+          <input id="girisEposta" type="email" required placeholder="ornek@gmail.com" autocomplete="email">
+        </label>
+        <button class="btn btn-ana" type="submit">Evet, e-postamla devam et</button>
       </form>
-      <div id="oturum" class="hesap" hidden>
-        <span id="oturumEposta" class="durum-yazi"></span>
-        <label class="check" for="bildirimAcik"><input id="bildirimAcik" type="checkbox" checked> E-posta hatırlatmaları</label>
-        <button class="btn ikincil" type="button" id="cikis">Çıkış</button>
-      </div>
-      <span id="hesapMesaj" class="durum-yazi" role="status"></span>
+      <p class="pencere-mesaj" id="girisMesaj" role="status" hidden></p>
+      <div class="ayrac">ya da</div>
+      <button type="button" class="btn btn-cizgi" id="girissizDevam">Hayır, hatırlatmasız devam et</button>
+      <p class="kucuk-not">Şifre yok: e-postana gelen bağlantıya tıklayarak girersin. Hatırlatmaları istediğin an kapatabilirsin.</p>
     </div>
-  </header>
-
-  <div class="grid">
-    <form class="profil" id="profil" autocomplete="off" novalidate>
-      <h2>Bilgilerin</h2>
-      <fieldset>
-        <legend>Eğitim</legend>
-        <label for="bolum">Bölüm, diplomadaki adıyla <span class="zorunlu" aria-hidden="true">*</span>
-          <input id="bolum" list="bolumListe" placeholder="Yazmaya başla, listeden seç" aria-describedby="bolumHata bolumUyari">
-        </label>
-        <p class="hata" id="bolumHata" hidden></p>
-        <p class="uyari-bolum" id="bolumUyari" hidden>Bu ad listemizde yok. Kamu ilanlarında bölüm adı birebir aranır; diplomandaki adla aynı yazdığından emin ol.</p>
-        <datalist id="bolumListe"></datalist>
-        <label for="ogrenim">Öğrenim düzeyi <span class="zorunlu" aria-hidden="true">*</span>
-          <select id="ogrenim" aria-describedby="ogrenimHata">
-            <option value="" selected disabled>Seç</option>
-            <option value="ortaogretim">Ortaöğretim (lise)</option>
-            <option value="onlisans">Ön lisans</option>
-            <option value="lisans">Lisans</option>
-            <option value="yukseklisans">Yüksek lisans</option>
-            <option value="doktora">Doktora</option>
-          </select>
-        </label>
-        <p class="hata" id="ogrenimHata" hidden></p>
-      </fieldset>
-      <fieldset>
-        <legend>Kişisel</legend>
-        <div class="row">
-          <label for="dogum">Doğum tarihi <span class="zorunlu" aria-hidden="true">*</span>
-            <input id="dogum" type="date" aria-describedby="dogumHata"></label>
-          <label for="cinsiyet">Cinsiyet <span class="zorunlu" aria-hidden="true">*</span>
-            <select id="cinsiyet" aria-describedby="cinsiyetHata">
-              <option value="" selected disabled>Seç</option><option value="E">Erkek</option><option value="K">Kadın</option>
-            </select>
-          </label>
-        </div>
-        <p class="hata" id="dogumHata" hidden></p>
-        <p class="hata" id="cinsiyetHata" hidden></p>
-        <label for="askerlik" id="askerlikAlan" hidden>Askerlik durumu <span class="zorunlu" aria-hidden="true">*</span>
-          <select id="askerlik" aria-describedby="askerlikHata">
-            <option value="" selected disabled>Seç</option>
-            <option value="yapildi">Yapıldı</option>
-            <option value="tecilli">Tecilli</option>
-            <option value="muaf">Muaf</option>
-            <option value="yedek">Yedek sınıf</option>
-            <option value="yok">Yapılmadı (tecil yok)</option>
-          </select>
-        </label>
-        <p class="hata" id="askerlikHata" hidden></p>
-      </fieldset>
-      <fieldset>
-        <legend>Sınavlar</legend>
-        <div class="row3">
-          <label for="kpssPuan">KPSS puanı <input id="kpssPuan" type="number" step="0.01" min="0" max="100" placeholder="yok" aria-describedby="kpssHata"></label>
-          <label for="kpssTur">Tür
-            <select id="kpssTur"><option>P3</option><option>P93</option><option>P94</option><option>P4</option></select>
-          </label>
-          <label for="kpssYil">Yıl
-            <select id="kpssYil"><option>2026</option><option>2025</option><option>2024</option></select>
-          </label>
-        </div>
-        <p class="hata" id="kpssHata" hidden></p>
-        <p class="hint">Lisans P3, ön lisans P93, lise P94 kullanır.</p>
-        <div class="row">
-          <label for="ales">ALES EA <input id="ales" type="number" step="0.01" min="0" max="100" placeholder="yok"></label>
-          <label for="yds">YDS (İngilizce) <input id="yds" type="number" step="0.25" min="0" max="100" placeholder="yok"></label>
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>İş deneyimi</legend>
-        <label for="deneyim">SGK'lı bilişim deneyimi (yıl) <input id="deneyim" type="number" step="0.5" min="0" max="40" value="0"></label>
-        <p class="hint">Lisans mezuniyetinden sonra, işçi statüsünde bilişim personeli olarak. Bilişim dışı çalıştıysan 0 bırak.</p>
-        <label class="check" for="kamu"><input id="kamu" type="checkbox"> Şu an 657'ye tabi bir kadroda çalışıyorum</label>
-      </fieldset>
-      <p class="form-ozet" id="formOzet" role="alert" hidden></p>
-      <button class="ara" type="submit" id="araBtn">Araştır</button>
-    </form>
-
-    <main id="sonuclar">
-      <div class="bekleme" id="bekleme">
-        <h2>Hangi kamu kadrolarına başvurabilirsin?</h2>
-        <p id="beklemeAlt">Bilgilerini gir ve Araştır'a bas. Açık ve yakında açılacak ilanlardaki her kadronun şartlarını tek tek kontrol edip başvurabileceklerini, başvuramıyorsan nedenini gösteririz.</p>
-        <ol>
-          <li>Bölümünü diplomadaki adıyla, listeden seç.</li>
-          <li>Doğum tarihini, KPSS puanını ve varsa ALES / YDS puanlarını gir.</li>
-          <li>Önemli ilanları kaydet; son başvuru gününü kaçırma.</li>
-        </ol>
-        <button type="button" class="ornek-btn" id="ornekBtn">Örnek profille dene</button>
-      </div>
-
-      <div id="sonucAlani" hidden>
-        <div class="degisti" id="degisti" hidden>
-          <span>Bilgilerin değişti. Sonuçlar eski bilgilere göre.</span>
-          <button type="button" id="degistiBtn">Yeniden araştır</button>
-        </div>
-        <section class="takip" id="takip" aria-labelledby="takipBaslik">
-          <div class="takip-bas">
-            <h2 id="takipBaslik">Takip listem</h2>
-            <p id="takipAlt"></p>
-          </div>
-          <div id="takipIcerik"></div>
-          <div class="takip-not" id="takipNot">Prototip: hatırlatmalar henüz gönderilmiyor. Liste, bildirimlerin hangi gün gideceğini ve hangisinin hangi pakette olduğunu gösteriyor.</div>
-        </section>
-        <div class="ozet">
-          <div class="sayilar" id="sayilar"></div>
-          <div class="filtre" role="group" aria-label="Filtre">
-            <button type="button" data-f="hepsi" aria-pressed="true">Tümü</button>
-            <button type="button" data-f="uygun" aria-pressed="false">Başvurabileceklerim</button>
-            <button type="button" data-f="acik" aria-pressed="false">Açık ilanlar</button>
-          </div>
-        </div>
-        <div class="ilanlar" id="ilanlar"></div>
-      </div>
-      <footer>
-        "Haber özeti" etiketli ilanlar resmi metinden değil, haberlerden yapılandırıldı; başvurmadan önce kurumun ilan metnini mutlaka oku.
-        Eşleştirme tarayıcında yapılır; giriş yapmadıkça bilgilerin hiçbir yere gönderilmez.
-      </footer>
-    </main>
   </div>
 </div>
 
@@ -372,6 +596,7 @@ var KamuEslestir = (() => {
     ILANLAR: () => ILANLAR,
     ORNEK_BOLUMLER: () => ORNEK_BOLUMLER,
     eslestir: () => eslestir,
+    gruplandir: () => gruplandir,
     hatirlatmaPlani: () => hatirlatmaPlani,
     takipSirala: () => takipSirala
   });
@@ -606,6 +831,14 @@ var KamuEslestir = (() => {
       const enIyi = kadrolar[0]?.durum ?? "uygun_degil";
       return { ilan, ...ilanZamani(ilan, bugun), kadrolar, enIyi };
     }).sort((a, b) => DURUM_SIRA[a.enIyi] - DURUM_SIRA[b.enIyi] || ZAMAN_SIRA[a.zaman] - ZAMAN_SIRA[b.zaman]);
+  }
+  function gruplandir(sonuclar) {
+    const aktif = sonuclar.filter((s) => s.zaman !== "kapandi");
+    return {
+      uygun: aktif.filter((s) => s.enIyi !== "uygun_degil"),
+      uygunDegil: aktif.filter((s) => s.enIyi === "uygun_degil"),
+      kapanan: sonuclar.filter((s) => s.zaman === "kapandi")
+    };
   }
 
   // src/hatirlatma.ts
@@ -1105,36 +1338,6 @@ var KamuEslestir = (() => {
       }
     ]
   };
-  var jandarmaAstsubayBeklenen = {
-    id: "jandarma-astsubay-beklenen",
-    kurum: "Jandarma Genel Komutanl\u0131\u011F\u0131",
-    baslik: "Muvazzaf / S\xF6zle\u015Fmeli Astsubay Temini (beklenen ilan)",
-    tip: "astsubay",
-    kesinlik: "gecmis-ilanlara-gore",
-    kaynaklar: [
-      "https://www.milliyet.com.tr/galeri/jandarma-genel-komutanligi-sozlesmeli-astsubay-alimi-basvurulari-basladi-mi-sartlar-neler-jgk-sozlesmeli-astsubay-alimi-basvuru-ta-7270910",
-      "https://www.eleman.net/is-rehberi/guncel/kpss-ile-asker-olmak-rutbeler-ve-sartlari-h4671"
-    ],
-    genelNotlar: [
-      "Ge\xE7mi\u015F y\u0131llarda ba\u015Fvurular Aral\u0131k\u2013Ocak veya \u015Eubat\u2013Mart aras\u0131nda a\xE7\u0131ld\u0131.",
-      "Kontenjan\u0131n 10 kat\u0131 aday s\u0131navlara (fiziki yeterlilik + s\xF6zl\xFC) \xE7a\u011Fr\u0131l\u0131yor."
-    ],
-    kadrolar: [
-      {
-        id: "jandarma-brans",
-        unvan: "Jandarma bran\u015F\u0131 (lisans)",
-        kontenjan: 0,
-        kurallar: [
-          { tip: "ogrenim", enAz: "onlisans" },
-          { tip: "bolum", herBolum: true },
-          // Yeni ilanda puan yılları muhtemelen 2026(-2027) olacak; şablon olarak 2025-2026.
-          { tip: "kpss", puanTuru: "P3", enAz: 60, yillar: [2025, 2026] },
-          { tip: "yasBitirmemis", yas: 27, referans: "2027-01-01" },
-          { tip: "manuel", aciklama: "Fiziki yeterlilik parkuru, sa\u011Fl\u0131k raporu ve boy-kilo \u015Fartlar\u0131." }
-        ]
-      }
-    ]
-  };
 
   // src/data/index.ts
   var ILANLAR = [
@@ -1143,22 +1346,23 @@ var KamuEslestir = (() => {
     tarimBilisim2026,
     karsiyakaBilgisayarIsletmeni,
     msbSubay2026,
-    jandarmaSubay2027,
-    jandarmaAstsubayBeklenen
+    jandarmaSubay2027
   ];
   return __toCommonJS(browser_exports);
 })();
 </script>
 <script>
 (function () {
-  const { eslestir, hatirlatmaPlani, takipSirala, ILANLAR, ORNEK_BOLUMLER } = window.KamuEslestir;
+  const { eslestir, gruplandir, hatirlatmaPlani, takipSirala, ILANLAR, ORNEK_BOLUMLER } = window.KamuEslestir;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const bugun = (() => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); })();
+  const bugun = window.KADRO_BUGUN || (() => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); })();
   const trTarih = (iso) => new Date(iso + "T00:00:00").toLocaleDateString("tr-TR", { day: "numeric", month: "long" });
-  $("stamp").textContent = "Prototip · " + ILANLAR.length + " ilan · bugün " + new Date(bugun + "T00:00:00").toLocaleDateString("tr-TR");
+  const kisaTarih = (iso) => new Date(iso + "T00:00:00").toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+  const depoAl = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const depoYaz = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 
-  // Bölüm önerileri: ilanlarda geçen tüm program adları + kategori kataloğu.
+  // ── Bölüm önerileri: ilanlarda geçen tüm program adları + kategori kataloğu ──
   const BOLUMLER = (() => {
     const set = new Set(ORNEK_BOLUMLER);
     ILANLAR.forEach((i) => i.kadrolar.forEach((k) => k.kurallar.forEach((r) => { if (r.tip === "bolum" && r.programlar) r.programlar.forEach((b) => set.add(b)); })));
@@ -1168,67 +1372,143 @@ var KamuEslestir = (() => {
   const BOLUM_SET = new Set(BOLUMLER.map(normal));
   $("bolumListe").innerHTML = BOLUMLER.map((b) => '<option value="' + esc(b) + '">').join("");
 
+  // ── Hero: sayılar, örnek kartlar, şerit ──
+  const ilkSonuclar = eslestir(ILANLAR, { ogrenim: "lisans", bolum: "x", dogumTarihi: "2000-01-01", cinsiyet: "K", askerlik: "yok", kpss: [], sgkBilisimDeneyimYil: 0, kamudaCalisiyor657: false }, bugun);
+  const acikSayi = ilkSonuclar.filter((s) => s.zaman === "acik" || s.zaman === "yakinda").length;
+  const kadroSayi = ilkSonuclar.filter((s) => s.zaman !== "kapandi").reduce((t, s) => t + s.ilan.kadrolar.length, 0);
+  $("heroKanit").innerHTML =
+    "<span><b>" + acikSayi + "</b> açık ya da yakında açılacak ilan</span>" +
+    "<span><b>" + kadroSayi + "</b> kadro</span>" +
+    "<span><b>" + BOLUMLER.length + "</b> bölüm adı</span>";
+
+  const IKON = { uygun: "✓", kontrol: "?", uygun_degil: "✕" };
+  const HUKUM = { uygun: "Başvurabilirsin", kontrol: "Kontrol et", uygun_degil: "Uygun değil" };
+  (function ornekKartlar() {
+    // Hero'daki kartlar motorun gerçek çıktısıdır (örnek bir profil için).
+    const ornekProfil = { ogrenim: "lisans", bolum: "Bilgisayar Mühendisliği", dogumTarihi: "1999-04-12", cinsiyet: "E", askerlik: "tecilli",
+      kpss: [{ yil: 2026, tur: "P3", puan: 72.4 }], ales: [], sgkBilisimDeneyimYil: 1, kamudaCalisiyor657: false };
+    const sec = [["jgk-aciktan-memur-2026", "muhendis-1"], ["iskur-bilisim-2026", "yazilim-uzmani"]];
+    const kartlar = sec.map(([ilanId, kadroId]) => {
+      const ilan = ILANLAR.find((i) => i.id === ilanId);
+      if (!ilan) return "";
+      const s = eslestir([ilan], ornekProfil, "2026-11-03")[0];
+      const k = s.kadrolar.find((x) => x.kadroId === kadroId);
+      if (!k) return "";
+      const kurallar = k.sonuclar.filter((r) => r.kural !== "manuel" && r.kural !== "kamudaCalismamak657" && r.kural !== "ogrenim").slice(0, 4);
+      return '<div class="ornek-kart ' + k.durum + '"><div class="ornek-bas"><span class="ornek-kurum">' + esc(ilan.kurum) + '</span><span class="hukum">' + HUKUM[k.durum] + '</span></div>' +
+        '<div class="ornek-unvan">' + esc(k.unvan) + "</div><ul>" +
+        kurallar.map((r) => '<li><span class="ik ' + r.durum + '">' + IKON[r.durum] + "</span><span>" + esc(r.gerekce) + "</span></li>").join("") + "</ul></div>";
+    }).join("");
+    $("ornekKartlar").innerHTML = kartlar + '<p class="ornek-not">Örnek: bilgisayar mühendisi, 1999 doğumlu, KPSS P3 72,4, 1 yıl deneyim</p>';
+  })();
+
+  const seritOgeleri = [...new Set(ILANLAR.map((i) => i.kurum))].concat(["KPSS P3", "ALES EA", "YDS", "657 sayılı DMK", "375 sayılı KHK", "Kariyer Kapısı", "Tecil", "Bölüm tablosu"]);
+  $("serit").innerHTML = seritOgeleri.concat(seritOgeleri).map((t) => "<span>" + esc(t) + "</span>").join("");
+
+  // Hatırlatma bölümündeki zaman çizelgesi: en yakın açık ilan üzerinden.
+  (function cizelge() {
+    const acik = ilkSonuclar.filter((s) => s.zaman === "acik" || s.zaman === "yakinda").sort((a, b) => a.ilan.sonBasvuru < b.ilan.sonBasvuru ? -1 : 1)[0];
+    const son = acik ? acik.ilan.sonBasvuru : "2026-11-16";
+    const baslik = acik ? acik.ilan.baslik : "Örnek ilan";
+    const gun = (n) => { const d = new Date(son + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() - n); return d.toISOString().slice(0, 10); };
+    $("cizelgeIlan").textContent = baslik;
+    $("cizelgeSon").textContent = "Son başvuru " + kisaTarih(son);
+    $("cizelgeNoktalar").innerHTML =
+      '<div class="nokta"><b>Kaydettin</b>bugün</div>' +
+      '<div class="nokta gonder"><b>' + kisaTarih(gun(3)) + "</b>3 gün kaldı</div>" +
+      '<div class="nokta gonder"><b>' + kisaTarih(gun(1)) + "</b>1 gün kaldı</div>" +
+      '<div class="nokta son"><b>' + kisaTarih(son) + "</b>son gün</div>";
+    $("cizelgeKonu").textContent = "Bugün son gün: " + baslik;
+    $("cizelgeAlt").textContent = "Başvuru 23:59'da kapanıyor. Takip listemi aç →";
+  })();
+
+  // Hero ışığı: yavaş süzülen iki renk lekesi ve yıldız tozu. Hareket azaltma tercihinde sabit kalır.
+  (function isik() {
+    const c = $("isik"); const ctx = c.getContext && c.getContext("2d"); if (!ctx) return;
+    const hareket = !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    let w = 0, h = 0, yildiz = [];
+    function boyut() {
+      const r = c.getBoundingClientRect(); const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = r.width; h = r.height; c.width = w * dpr; c.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      yildiz = Array.from({ length: Math.round(w * h / 9000) }, () => ({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.2 + .2, a: Math.random() * .6 + .15, v: Math.random() * .15 + .03 }));
+    }
+    function leke(x, y, r, renk) { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, renk); g.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h); }
+    function ciz(t) {
+      ctx.clearRect(0, 0, w, h);
+      const s = (t || 0) / 9000;
+      ctx.globalCompositeOperation = "lighter";
+      leke(w * (.12 + .05 * Math.sin(s)), h * (.45 + .08 * Math.cos(s * .8)), Math.max(w, h) * .55, "rgba(194,122,62,.30)");
+      leke(w * (.9 + .04 * Math.cos(s * 1.1)), h * (.35 + .1 * Math.sin(s * .7)), Math.max(w, h) * .55, "rgba(74,90,114,.34)");
+      ctx.globalCompositeOperation = "source-over";
+      for (const p of yildiz) { if (hareket) { p.y -= p.v; if (p.y < 0) p.y = h; } ctx.globalAlpha = p.a; ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
+      ctx.globalAlpha = 1;
+      if (hareket && !document.hidden) requestAnimationFrame(ciz);
+    }
+    boyut(); requestAnimationFrame(ciz);
+    window.addEventListener("resize", () => { boyut(); if (!hareket) requestAnimationFrame(ciz); });
+    document.addEventListener("visibilitychange", () => { if (!document.hidden && hareket) requestAnimationFrame(ciz); });
+  })();
+
+  // ── Form ──
   const ALANLAR = ["bolum", "ogrenim", "dogum", "cinsiyet", "askerlik", "kpssPuan", "kpssTur", "kpssYil", "ales", "yds", "deneyim", "kamu"];
   const KEY = "kadro-eslestir-profil";
   function formOku() { const o = {}; ALANLAR.forEach((a) => { const el = $(a); o[a] = el.type === "checkbox" ? el.checked : el.value; }); return o; }
   function formYaz(o) { ALANLAR.forEach((a) => { if (a in o) { const el = $(a); el.type === "checkbox" ? (el.checked = !!o[a]) : (el.value = o[a] ?? ""); } }); askerlikGoster(); }
   function askerlikGoster() { $("askerlikAlan").hidden = $("cinsiyet").value !== "E"; }
 
-  // Takip listesi: kaydedilen ilan id'leri.
+  // ── Takip listesi ──
   const TAKIP_KEY = "kadro-eslestir-takip";
-  let takip = (() => {
-    try { const t = JSON.parse(localStorage.getItem(TAKIP_KEY) || "null"); if (Array.isArray(t)) return new Set(t); } catch (e) {}
-    return new Set();
-  })();
-  function takipKaydet() { try { localStorage.setItem(TAKIP_KEY, JSON.stringify([...takip])); } catch (e) {} }
+  let takip = (() => { try { const t = JSON.parse(depoAl(TAKIP_KEY) || "null"); if (Array.isArray(t)) return new Set(t); } catch (e) {} return new Set(); })();
+  function takipKaydet() { depoYaz(TAKIP_KEY, JSON.stringify([...takip])); }
   function takipDegistir(id) {
     const eklendi = !takip.has(id);
     eklendi ? takip.add(id) : takip.delete(id);
     takipKaydet(); ciz(); senkron.takipDegisti(id, eklendi);
   }
-  // Senkronizasyon: web sürümünde Supabase'e bağlanır, demoda hiçbir şey yapmaz.
+  // Senkronizasyon: yayındaki sitede Supabase'e bağlanır, önizlemede hiçbir şey yapmaz.
   let senkron = { profilKaydedildi() {}, takipDegisti() {} };
+  let kullanici = null;
 
   const PAKET_AD = { ucretsiz: "Ücretsiz", plus: "Plus" };
-  const kisaTarih = (iso) => new Date(iso + "T00:00:00").toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
-
   function takipCiz(sonuclar) {
     const secili = takipSirala(sonuclar.filter((s) => takip.has(s.ilan.id)));
-    $("takipAlt").textContent = secili.length
-      ? secili.length + " ilan takipte"
-      : "";
+    $("takipAlt").textContent = secili.length ? secili.length + " ilan takipte" : "";
     if (!secili.length) {
       $("takipIcerik").innerHTML = '<p class="takip-bos">Önemli gördüğün ilanları "Kaydet" ile buraya ekle. Son başvuru günleri ve hatırlatma planı burada görünür.</p>';
-      return;
+    } else {
+      $("takipIcerik").innerHTML = secili.map((s) => {
+        const plan = hatirlatmaPlani(s, bugun);
+        let sayac;
+        if (s.zaman === "acik") sayac = '<div class="geri-sayim' + (s.kalanGun <= 3 ? " acil" : "") + '"><b>' + s.kalanGun + "</b><span>gün kaldı</span></div>";
+        else if (s.zaman === "yakinda") sayac = '<div class="geri-sayim"><b>' + s.kalanGun + "</b><span>gün sonra</span></div>";
+        else if (s.zaman === "bekleniyor") sayac = '<div class="geri-sayim"><b>–</b><span>bekleniyor</span></div>';
+        else sayac = '<div class="geri-sayim"><b>✕</b><span>kapandı</span></div>';
+        const uyg = { uygun: "Başvurabilirsin", kontrol: "Kontrol et", uygun_degil: "Sana uygun değil" }[s.enIyi];
+        return '<div class="takip-satir">' + sayac +
+          '<div><div class="t-baslik">' + esc(s.ilan.baslik) + '</div><div class="t-alt">' + esc(s.ilan.kurum) + " · " + uyg + "</div></div>" +
+          '<button type="button" class="cikar" data-cikar="' + esc(s.ilan.id) + '">Takipten çıkar</button>' +
+          '<ul class="plan">' + plan.map((h) =>
+            '<li class="' + (h.paket === "plus" ? "plus-li" : "") + '"><span class="p-tarih">' + (h.tarih ? kisaTarih(h.tarih) : "olay olunca") + "</span><span>" + esc(h.mesaj) + '</span><span class="paket ' + h.paket + '">' + PAKET_AD[h.paket] + "</span></li>").join("") +
+          "</ul></div>";
+      }).join("");
+      $("takipIcerik").querySelectorAll("[data-cikar]").forEach((b) => b.addEventListener("click", () => takipDegistir(b.dataset.cikar)));
     }
-    $("takipIcerik").innerHTML = secili.map((s) => {
-      const plan = hatirlatmaPlani(s, bugun);
-      let sayac;
-      if (s.zaman === "acik") sayac = '<div class="geri-sayim' + (s.kalanGun <= 3 ? " acil" : "") + '"><b>' + s.kalanGun + "</b><span>gün kaldı</span></div>";
-      else if (s.zaman === "yakinda") sayac = '<div class="geri-sayim"><b>' + s.kalanGun + "</b><span>gün sonra açılıyor</span></div>";
-      else if (s.zaman === "bekleniyor") sayac = '<div class="geri-sayim"><b>–</b><span>bekleniyor</span></div>';
-      else sayac = '<div class="geri-sayim"><b>✕</b><span>kapandı</span></div>';
-      const uyg = { uygun: "Başvurabilirsin", kontrol: "Kontrol et", uygun_degil: "Sana uygun değil" }[s.enIyi];
-      return '<div class="takip-satir">' + sayac +
-        '<div><div class="t-baslik">' + esc(s.ilan.baslik) + '</div><div class="t-alt">' + esc(s.ilan.kurum) + " · " + uyg + "</div></div>" +
-        '<button type="button" class="cikar" data-cikar="' + esc(s.ilan.id) + '">Takipten çıkar</button>' +
-        '<ul class="plan">' + plan.map((h) =>
-          '<li class="' + (h.paket === "plus" ? "plus-li" : "") + '"><span class="p-tarih">' + (h.tarih ? kisaTarih(h.tarih) : "olay olunca") + "</span><span>" + esc(h.mesaj) + '</span><span class="paket ' + h.paket + '">' + PAKET_AD[h.paket] + "</span></li>").join("") +
-        "</ul></div>";
-    }).join("");
-    $("takipIcerik").querySelectorAll("[data-cikar]").forEach((b) => b.addEventListener("click", () => takipDegistir(b.dataset.cikar)));
+    notGuncelle();
   }
 
-  let filtre = "hepsi";
-  const num = (id) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : undefined; };
+  function notGuncelle() {
+    const not = $("takipNot");
+    if (kullanici && $("bildirimAcik").checked) { not.innerHTML = "Hatırlatmalar her sabah <b>" + esc(kullanici.email) + "</b> adresine gidiyor."; return; }
+    if (kullanici) { not.textContent = "E-posta hatırlatmaları kapalı. Açmak için üstteki E-posta kutusunu işaretle."; return; }
+    not.innerHTML = 'Hatırlatma almıyorsun. <button type="button" class="metin-btn" data-hatirlatma>E-postamla hatırlatma al</button>';
+    not.querySelector("[data-hatirlatma]").addEventListener("click", karsilamaAc);
+  }
 
-  // Son "Araştır"da kullanılan profil; sonuçlar ve takip listesi buna göre çizilir.
+  const num = (id) => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : undefined; };
   let sonProfil = null;
 
   function profil() {
-    const kpss = num("kpssPuan");
-    const ales = num("ales");
-    const yds = num("yds");
+    const kpss = num("kpssPuan"), ales = num("ales"), yds = num("yds");
     const p = {
       ogrenim: $("ogrenim").value,
       bolum: $("bolum").value.trim(),
@@ -1244,7 +1524,6 @@ var KamuEslestir = (() => {
     return p;
   }
 
-  /** Zorunlu alanları ve sınırları kontrol eder; hataları alanların altında gösterir. */
   function dogrula() {
     const hatalar = {};
     const v = (id) => $(id).value.trim();
@@ -1257,11 +1536,9 @@ var KamuEslestir = (() => {
     else if (v("cinsiyet") === "E" && !v("askerlik")) hatalar.askerlik = "Askerlik durumunu seç.";
     const k = v("kpssPuan");
     if (k && !(+k >= 0 && +k <= 100)) hatalar.kpss = "KPSS puanı 0 ile 100 arasında olmalı.";
-
-    [["bolum", "bolum"], ["ogrenim", "ogrenim"], ["dogum", "dogum"], ["cinsiyet", "cinsiyet"], ["askerlik", "askerlik"], ["kpss", "kpssPuan"]].forEach(([anahtar, alan]) => {
-      const el = $(anahtar + "Hata");
-      el.hidden = !hatalar[anahtar]; el.textContent = hatalar[anahtar] || "";
-      $(alan).setAttribute("aria-invalid", String(!!hatalar[anahtar]));
+    [["bolum", "bolum"], ["ogrenim", "ogrenim"], ["dogum", "dogum"], ["cinsiyet", "cinsiyet"], ["askerlik", "askerlik"], ["kpss", "kpssPuan"]].forEach(([a, alan]) => {
+      const el = $(a + "Hata"); el.hidden = !hatalar[a]; el.textContent = hatalar[a] || "";
+      $(alan).setAttribute("aria-invalid", String(!!hatalar[a]));
     });
     $("bolumUyari").hidden = !v("bolum") || BOLUM_SET.has(normal(v("bolum")));
     const sayi = Object.keys(hatalar).length;
@@ -1270,31 +1547,23 @@ var KamuEslestir = (() => {
     return sayi === 0;
   }
 
-  /** Araştır: doğrula, sonuçları çiz, profili kaydet. kaydet=false → hesaptan yüklenen profil (tekrar yazma). */
   function ara(kaydet) {
-    if (!dogrula()) {
-      const ilk = document.querySelector('#profil [aria-invalid="true"]');
-      if (ilk) ilk.focus();
-      return false;
-    }
+    if (!dogrula()) { const ilk = document.querySelector('#profil [aria-invalid="true"]'); if (ilk) ilk.focus(); return false; }
     sonProfil = profil();
-    try { localStorage.setItem(KEY, JSON.stringify({ ...formOku(), arandi: true })); } catch (e) {}
+    depoYaz(KEY, JSON.stringify({ ...formOku(), arandi: true }));
     $("bekleme").hidden = true; $("sonucAlani").hidden = false; $("degisti").hidden = true;
     ciz();
     if (kaydet !== false) senkron.profilKaydedildi(sonProfil);
     return true;
   }
 
-  const HUKUM = { uygun: "Başvurabilirsin", kontrol: "Kontrol et", uygun_degil: "Uygun değil" };
-  const IKON = { uygun: "✓", kontrol: "?", uygun_degil: "✕" };
-  const KESINLIK = { "resmi-metin": "Resmi metin", "haber-ozeti": "Haber özeti", "gecmis-ilanlara-gore": "Geçmiş ilanlara göre" };
-
   function zamanEtiketi(s) {
     if (s.zaman === "acik") return '<span class="etiket zaman acik">Açık · son ' + trTarih(s.ilan.sonBasvuru) + " · " + s.kalanGun + " gün</span>";
     if (s.zaman === "yakinda") return '<span class="etiket zaman yakinda">Başvuru ' + trTarih(s.ilan.basvuruBaslangic) + "'da açılıyor</span>";
     if (s.zaman === "kapandi") return '<span class="etiket zaman kapandi">Kapandı · ' + trTarih(s.ilan.sonBasvuru) + "</span>";
-    return '<span class="etiket zaman bekleniyor">Henüz yayımlanmadı</span>';
+    return '<span class="etiket zaman">Henüz yayımlanmadı</span>';
   }
+  const KESINLIK = { "resmi-metin": "Resmi metin", "haber-ozeti": "Haber özeti", "gecmis-ilanlara-gore": "Geçmiş ilanlara göre" };
 
   function kadroHTML(ilan, k) {
     const kadro = ilan.kadrolar.find((x) => x.id === k.kadroId);
@@ -1315,41 +1584,47 @@ var KamuEslestir = (() => {
       "</ul></details></div></div>";
   }
 
+  function ilanHTML(s) {
+    const acik = s.kadrolar.filter((k) => k.durum !== "uygun_degil");
+    const kapali = s.kadrolar.filter((k) => k.durum === "uygun_degil");
+    const kapaliHTML = kapali.map((k) => kadroHTML(s.ilan, k)).join("");
+    const kayitli = takip.has(s.ilan.id);
+    return '<article class="ilan"><div class="ilan-bas">' +
+      '<button type="button" class="kaydet" data-kaydet="' + esc(s.ilan.id) + '" aria-pressed="' + kayitli + '">' + (kayitli ? "★ Takipte" : "☆ Kaydet") + "</button>" +
+      '<div class="ilan-ust"><span class="kurum">' + esc(s.ilan.kurum) + "</span>" + zamanEtiketi(s) + '<span class="etiket">' + KESINLIK[s.ilan.kesinlik] + "</span></div>" +
+      "<h4>" + esc(s.ilan.baslik) + "</h4>" +
+      (s.ilan.genelNotlar && s.ilan.genelNotlar.length ? '<ul class="genel">' + s.ilan.genelNotlar.map((n) => "<li>" + esc(n) + "</li>").join("") + "</ul>" : "") +
+      "</div>" +
+      acik.map((k) => kadroHTML(s.ilan, k)).join("") +
+      (kapali.length ? (acik.length
+        ? '<details class="kapali-grup"><summary>' + kapali.length + " kadro sana uygun değil</summary>" + kapaliHTML + "</details>"
+        : kapali.length > 2 ? '<details class="kapali-grup" open><summary>' + kapali.length + " kadronun hiçbiri sana uygun değil</summary>" + kapaliHTML + "</details>" : kapaliHTML) : "") +
+      '<div class="kaynak">Kaynak: ' + s.ilan.kaynaklar.map((u) => '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]) + "</a>").join("") + "</div></article>";
+  }
+
   function ciz() {
     if (!sonProfil) return;
-    const p = sonProfil;
-    const sonuclar = eslestir(ILANLAR, p, bugun);
+    const sonuclar = eslestir(ILANLAR, sonProfil, bugun);
     takipCiz(sonuclar);
-    const tum = sonuclar.flatMap((s) => s.kadrolar.filter((k) => s.zaman !== "kapandi").map((k) => k.durum));
-    const say = (d) => tum.filter((x) => x === d).length;
+    const g = gruplandir(sonuclar);
+    const kadrolar = g.uygun.concat(g.uygunDegil).flatMap((s) => s.kadrolar.map((k) => k.durum));
+    const say = (d) => kadrolar.filter((x) => x === d).length;
     $("sayilar").innerHTML =
       '<span class="sayi ok"><b>' + say("uygun") + "</b> kadroya başvurabilirsin</span>" +
-      '<span class="sayi warn"><b>' + say("kontrol") + "</b> kontrol et</span>" +
+      (say("kontrol") ? '<span class="sayi warn"><b>' + say("kontrol") + "</b> kontrol et</span>" : "") +
       '<span class="sayi bad"><b>' + say("uygun_degil") + "</b> uygun değil</span>";
 
-    const gorunen = sonuclar.filter((s) =>
-      filtre === "uygun" ? s.enIyi !== "uygun_degil" && s.zaman !== "kapandi"
-      : filtre === "acik" ? s.zaman === "acik" || s.zaman === "yakinda" : true);
-
-    $("ilanlar").innerHTML = gorunen.length ? gorunen.map((s) => {
-      const acik = s.kadrolar.filter((k) => k.durum !== "uygun_degil");
-      const kapali = s.kadrolar.filter((k) => k.durum === "uygun_degil");
-      const kapaliHTML = kapali.map((k) => kadroHTML(s.ilan, k)).join("");
-      const kayitli = takip.has(s.ilan.id);
-      return '<article class="ilan"><div class="ilan-bas">' +
-        '<button type="button" class="kaydet" data-kaydet="' + esc(s.ilan.id) + '" aria-pressed="' + kayitli + '">' + (kayitli ? "★ Takipte" : "☆ Kaydet") + "</button>" +
-        '<div class="ilan-ust"><span class="kurum">' + esc(s.ilan.kurum) + "</span>" + zamanEtiketi(s) +
-        '<span class="etiket">' + KESINLIK[s.ilan.kesinlik] + "</span></div>" +
-        "<h3>" + esc(s.ilan.baslik) + "</h3>" +
-        (s.ilan.genelNotlar && s.ilan.genelNotlar.length ? '<ul class="genel">' + s.ilan.genelNotlar.map((n) => "<li>" + esc(n) + "</li>").join("") + "</ul>" : "") +
-        "</div>" +
-        acik.map((k) => kadroHTML(s.ilan, k)).join("") +
-        (kapali.length ? (acik.length
-          ? '<details class="kapali-grup"><summary>' + kapali.length + " kadro sana uygun değil</summary>" + kapaliHTML + "</details>"
-          : kapali.length > 2 ? '<details class="kapali-grup" open><summary>' + kapali.length + " kadronun hiçbiri sana uygun değil</summary>" + kapaliHTML + "</details>" : kapaliHTML) : "") +
-        '<div class="kaynak">Kaynak: ' + s.ilan.kaynaklar.map((u) => '<a href="' + esc(u) + '" target="_blank" rel="noopener">' + esc(u.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]) + "</a>").join("") + "</div></article>";
-    }).join("") : '<div class="bos">Bu filtreye uyan ilan yok. Profilini değiştirmeyi ya da "Tümü"nü seçmeyi dene.</div>';
-    $("ilanlar").querySelectorAll("[data-kaydet]").forEach((b) => b.addEventListener("click", () => takipDegistir(b.dataset.kaydet)));
+    let html = '<p class="grup-baslik">Sana uygun ilanlar</p>';
+    html += g.uygun.length
+      ? '<div class="ilanlar">' + g.uygun.map(ilanHTML).join("") + "</div>"
+      : '<div class="sonuc-bos"><b>Şu an açık ilanlarda sana uygun kadro yok.</b> Yeni ilanlar ekledikçe burada görünecek. Neden uymadığını aşağıdaki ilanlarda görebilirsin.</div>';
+    if (g.uygunDegil.length)
+      html += '<details class="uygun-olmayan"' + (g.uygun.length ? "" : " open") + '><summary>Açık ama sana uygun olmayan ' + g.uygunDegil.length + " ilan</summary>" +
+        '<div class="ilanlar">' + g.uygunDegil.map(ilanHTML).join("") + "</div></details>";
+    if (g.kapanan.length)
+      html += '<p class="kapanan-not">Başvurusu kapanan ' + g.kapanan.length + " ilan gösterilmiyor.</p>";
+    $("ilanAlani").innerHTML = html;
+    $("ilanAlani").querySelectorAll("[data-kaydet]").forEach((b) => b.addEventListener("click", () => takipDegistir(b.dataset.kaydet)));
   }
 
   $("profil").addEventListener("input", (e) => {
@@ -1360,7 +1635,7 @@ var KamuEslestir = (() => {
   $("profil").addEventListener("change", (e) => { if (e.target.id === "cinsiyet") askerlikGoster(); });
   $("profil").addEventListener("submit", (e) => {
     e.preventDefault();
-    if (ara() && window.matchMedia && window.matchMedia("(max-width: 860px)").matches) $("sonuclar").scrollIntoView({ behavior: "smooth", block: "start" });
+    if (ara() && window.matchMedia && window.matchMedia("(max-width: 920px)").matches) $("sonuclar").scrollIntoView({ behavior: "smooth", block: "start" });
   });
   $("degistiBtn").addEventListener("click", () => ara());
   $("ornekBtn").addEventListener("click", () => {
@@ -1368,24 +1643,58 @@ var KamuEslestir = (() => {
       askerlik: "tecilli", kpssPuan: "68", kpssTur: "P3", kpssYil: "2026", ales: "", yds: "", deneyim: "0", kamu: false });
     ara();
   });
-  document.querySelectorAll(".filtre button").forEach((b) => b.addEventListener("click", () => {
-    filtre = b.dataset.f;
-    document.querySelectorAll(".filtre button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-    ciz();
-  }));
+
+  // ── Karşılama penceresi: hatırlatma e-postası ister mi? ──
+  const KARSILAMA_KEY = "kadro-eslestir-karsilama";
+  const AYAR = window.KADRO_AYAR;
+  const canli = !!(AYAR && AYAR.supabaseUrl && AYAR.anonKey && window.supabase);
+  const db = canli ? window.supabase.createClient(AYAR.supabaseUrl, AYAR.anonKey) : null;
+  let oncekiOdak = null;
+
+  function karsilamaAc() {
+    if (kullanici) return;
+    oncekiOdak = document.activeElement;
+    $("karsilama").hidden = false; $("girisMesaj").hidden = true; $("girisForm").hidden = false;
+    setTimeout(() => $("girisEposta").focus(), 30);
+  }
+  function karsilamaKapat(secim) {
+    $("karsilama").hidden = true;
+    if (secim) depoYaz(KARSILAMA_KEY, secim);
+    if (oncekiOdak && oncekiOdak.focus) oncekiOdak.focus();
+  }
+  function girisMesaji(t, hata) { const m = $("girisMesaj"); m.hidden = false; m.textContent = t; m.classList.toggle("hata-mesaj", !!hata); }
+
+  $("hatirlatmaBtn").addEventListener("click", karsilamaAc);
+  $("hatirlatmaBtn2").addEventListener("click", karsilamaAc);
+  $("girissizDevam").addEventListener("click", () => karsilamaKapat("hayir"));
+  $("karsilama").addEventListener("click", (e) => { if (e.target === $("karsilama")) karsilamaKapat("hayir"); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("karsilama").hidden) karsilamaKapat("hayir"); });
+
+  $("girisForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const eposta = $("girisEposta").value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(eposta)) { girisMesaji("Geçerli bir e-posta adresi yaz.", true); $("girisEposta").focus(); return; }
+    if (!canli) { girisMesaji("Bu önizlemede e-posta girişi kapalı. Yayındaki sitede bağlantı e-postana gelir.", true); return; }
+    const { error } = await db.auth.signInWithOtp({ email: eposta, options: { emailRedirectTo: location.origin + location.pathname } });
+    if (error) { girisMesaji("Bağlantı gönderilemedi: " + error.message, true); return; }
+    depoYaz(KARSILAMA_KEY, "eposta");
+    $("girisForm").hidden = true;
+    girisMesaji("Giriş bağlantısını " + eposta + " adresine gönderdik. E-postandaki bağlantıya tıkladığında hatırlatmaların açılacak. Bu arada siteyi kullanmaya devam edebilirsin.");
+    $("girissizDevam").textContent = "Siteye devam et";
+  });
+
+  notGuncelle();
 
   // Daha önce araştırma yapılmışsa bilgileri geri yükle ve sonuçları göster.
-  try {
-    const kayit = JSON.parse(localStorage.getItem(KEY) || "null");
-    if (kayit && kayit.arandi) { formYaz(kayit); ara(false); }
-  } catch (e) {}
+  try { const kayit = JSON.parse(depoAl(KEY) || "null"); if (kayit && kayit.arandi) { formYaz(kayit); ara(false); } } catch (e) {}
 
-  // ── Web sürümü: Supabase ile giriş ve senkronizasyon ─────────────────────
-  const AYAR = window.KADRO_AYAR;
-  if (!AYAR || !AYAR.supabaseUrl || !AYAR.anonKey || !window.supabase) return;
-  const db = window.supabase.createClient(AYAR.supabaseUrl, AYAR.anonKey);
-  $("hesap").hidden = false;
-  const mesaj = (t) => { $("hesapMesaj").textContent = t; };
+  // İlk ziyarette karşılama penceresini aç (yayındaki sitede oturum açıksa oturumAcildi kapatır).
+  if (!depoAl(KARSILAMA_KEY)) karsilamaAc();
+
+  if (!canli) return;
+
+  // ── Yayındaki site: Supabase oturumu ve senkronizasyon ──
+  const durum = (t) => { const d = $("durumCubugu"); d.hidden = !t; d.textContent = t || ""; };
 
   function profiliForma(p) {
     const ata = (id, v) => { if (v !== undefined && v !== null) $(id).value = v; };
@@ -1396,23 +1705,24 @@ var KamuEslestir = (() => {
     askerlikGoster();
   }
 
-  let kullanici = null;
   async function profilYaz(p) {
     const { error } = await db.from("profiller").upsert({ user_id: kullanici.id, profil: p, guncellendi: new Date().toISOString() });
-    if (error) mesaj("Profil kaydedilemedi: " + error.message);
+    if (error) durum("Profil kaydedilemedi: " + error.message);
   }
 
   async function oturumAcildi(user) {
     kullanici = user;
-    $("girisForm").hidden = true; $("oturum").hidden = false;
+    depoYaz(KARSILAMA_KEY, "eposta");
+    karsilamaKapat();
+    $("hatirlatmaBtn").hidden = true; $("oturum").hidden = false;
     $("oturumEposta").textContent = user.email;
-    mesaj("Eşitleniyor…");
+    durum("Hesabın eşitleniyor…");
 
     const [{ data: pr, error: e1 }, { data: tk, error: e2 }] = await Promise.all([
       db.from("profiller").select("profil, bildirim_eposta").eq("user_id", user.id).maybeSingle(),
       db.from("takip").select("ilan_id").eq("user_id", user.id),
     ]);
-    if (e1 || e2) { mesaj("Veriler alınamadı: " + (e1 || e2).message); return; }
+    if (e1 || e2) { durum("Veriler alınamadı: " + (e1 || e2).message); return; }
 
     // İlk girişte bu tarayıcıdaki profil ve takip listesi hesaba taşınır; sonraki girişlerde hesaptaki geçerlidir.
     if (pr) { profiliForma(pr.profil); $("bildirimAcik").checked = pr.bildirim_eposta; }
@@ -1429,35 +1739,21 @@ var KamuEslestir = (() => {
         const { error } = eklendi
           ? await db.from("takip").insert({ user_id: kullanici.id, ilan_id: id })
           : await db.from("takip").delete().eq("user_id", kullanici.id).eq("ilan_id", id);
-        if (error && error.code !== "23505") mesaj("Takip listesi kaydedilemedi: " + error.message);
+        if (error && error.code !== "23505") durum("Takip listesi kaydedilemedi: " + error.message);
       },
     };
     notGuncelle();
     if (pr) ara(false); else ciz();
-    mesaj(pr || sonProfil ? "" : "Bilgilerini girip Araştır'a bastığında hesabına kaydedilecek.");
+    durum(pr || sonProfil ? "" : "Hatırlatmalar açık. Bilgilerini girip Araştır'a bastığında hesabına kaydedilecek.");
   }
 
-  function notGuncelle() {
-    $("takipNot").textContent = kullanici && $("bildirimAcik").checked
-      ? "Ücretsiz hatırlatmalar her sabah " + kullanici.email + " adresine gidiyor. Plus hatırlatmalar henüz açılmadı."
-      : kullanici ? "E-posta hatırlatmaları kapalı. Açmak için üstteki kutuyu işaretle."
-      : "Hatırlatma almak için giriş yap. Liste, bildirimlerin hangi gün gideceğini gösteriyor.";
-  }
-
-  $("girisForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const eposta = $("girisEposta").value.trim();
-    const { error } = await db.auth.signInWithOtp({ email: eposta, options: { emailRedirectTo: location.origin + location.pathname } });
-    mesaj(error ? "Bağlantı gönderilemedi: " + error.message : "Giriş bağlantısını " + eposta + " adresine gönderdik. E-postandaki bağlantıya tıkla.");
-  });
   $("cikis").addEventListener("click", async () => { await db.auth.signOut(); location.reload(); });
   $("bildirimAcik").addEventListener("change", async () => {
     const { error } = await db.from("profiller").update({ bildirim_eposta: $("bildirimAcik").checked }).eq("user_id", kullanici.id);
-    if (error) mesaj("Ayar kaydedilemedi: " + error.message);
+    if (error) durum("Ayar kaydedilemedi: " + error.message);
     notGuncelle();
   });
 
-  notGuncelle();
   db.auth.onAuthStateChange((olay, oturum) => {
     if (oturum && oturum.user && (!kullanici || kullanici.id !== oturum.user.id)) oturumAcildi(oturum.user);
   });

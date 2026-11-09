@@ -143,6 +143,17 @@ input:focus, select:focus { border-color: var(--accent); outline: none; box-shad
 .hata { color: var(--bad); font-size: 12.5px; font-weight: 600; margin: -2px 0 0; }
 .uyari-bolum { color: var(--warn); font-size: 12.5px; margin: -2px 0 0; }
 [aria-invalid="true"] { border-color: var(--bad); }
+.turler { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tur { position: relative; display: block; cursor: pointer; }
+.tur input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.tur span { display: grid; gap: 2px; border: 1px solid var(--line-2); border-radius: var(--r-s); padding: 9px 11px; background: var(--bg-2); transition: border-color .15s, background .15s; }
+.tur b { font: 600 14px var(--f-body); color: var(--ink); }
+.tur small { font-size: 11.5px; color: var(--faint); font-weight: 500; }
+.tur input:checked + span { border-color: var(--accent); background: rgba(194,122,62,.12); }
+.tur input:checked + span b::after { content: " ✓"; color: var(--accent); }
+.tur input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bekleme-notu { margin: 0 0 12px; font-size: 14px; color: var(--muted); }
+.diger-not { margin: 14px 0 0; font-size: 13px; color: var(--faint); }
 .form-ozet { margin: 0; font-size: 13px; color: var(--bad); font-weight: 600; }
 .ara { font: 700 16px var(--f-body); color: var(--accent-ink); background: var(--accent); border: 0; border-radius: 999px; padding: 13px 18px; cursor: pointer; width: 100%; transition: filter .15s; }
 .ara:hover { filter: brightness(1.08); }
@@ -157,6 +168,7 @@ input:focus, select:focus { border-color: var(--accent); outline: none; box-shad
 .sayilar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
 .sayi { display: inline-flex; align-items: baseline; gap: 7px; padding: 7px 14px; border-radius: 999px; font-size: 13.5px; font-weight: 600; }
 .sayi b { font: 600 16px var(--f-mono); }
+.sayi.beklenen { border: 1px dashed var(--line-2); color: var(--ink); }
 .sayi.ok { background: var(--ok-bg); color: var(--ok); } .sayi.warn { background: var(--warn-bg); color: var(--warn); } .sayi.bad { background: var(--bad-bg); color: var(--bad); }
 .grup-baslik { font: 600 11.5px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin: 24px 0 12px; }
 .ilanlar { display: grid; gap: 14px; }
@@ -324,7 +336,7 @@ footer.alt p { margin: 0; max-width: 62ch; }
     <div class="kap hero-ic">
       <span class="rozet etiket-mono"><i></i>KPSS ile kamu kadroları</span>
       <h1 id="heroBaslik">Kılavuzu okuma. <span class="vurgu">Kadronu bul.</span></h1>
-      <p class="hero-alt">Bölümünü, KPSS puanını ve birkaç bilgini gir. Açık ilanlardaki her kadronun şartlarını tek tek kontrol edip nereye başvurabileceğini, başvuramıyorsan nedenini gösterelim.</p>
+      <p class="hero-alt">Askerlik, polislik, memurluk ya da bilişim: hangi ilanı beklediğini seç, bölümünü ve KPSS puanını gir. Her kadronun şartlarını tek tek kontrol edip nereye başvurabileceğini, başvuramıyorsan nedenini gösterelim.</p>
       <div class="hero-butonlar">
         <a class="btn btn-ana" href="#arac">Bilgilerimi gir →</a>
         <a class="btn btn-cizgi" href="#nasil">Nasıl çalışır</a>
@@ -344,9 +356,9 @@ footer.alt p { margin: 0; max-width: 62ch; }
         <p>Kamu ilanlarında bölüm adı tabloda birebir aranır, yaş sınırı doğum yılına göre hesaplanır, puan türü ve yılı ayrıca kontrol edilir. Bunları senin yerine yapıyoruz.</p>
       </div>
       <div class="adimlar">
-        <div class="adim"><span class="no">01</span><h3>Bilgilerini gir</h3><p>Diplomandaki bölüm adı, doğum tarihi, KPSS puanın ve varsa ALES, YDS ve iş deneyimin.</p></div>
+        <div class="adim"><span class="no">01</span><h3>Bilgilerini gir</h3><p>Beklediğin ilan türü, diplomandaki bölüm adı, doğum tarihi, KPSS puanın ve varsa ALES, YDS ve iş deneyimin.</p></div>
         <div class="adim"><span class="no">02</span><h3>Kadro kadro kontrol</h3><p>Her ilandaki her kadronun bölüm, puan, yaş, askerlik ve deneyim şartı tek tek değerlendirilir.</p></div>
-        <div class="adim"><span class="no">03</span><h3>Kaydet, kaçırma</h3><p>Önemli ilanları kaydet. İstersen son başvurudan önce e-postayla hatırlatalım.</p></div>
+        <div class="adim"><span class="no">03</span><h3>Kaydet, kaçırma</h3><p>Beklediğin türde sana uygun yeni ilan çıktığında ve son başvurudan önce e-postayla haber verelim.</p></div>
       </div>
     </div>
   </section>
@@ -360,6 +372,16 @@ footer.alt p { margin: 0; max-width: 62ch; }
       <div class="arac-grid">
         <form class="profil" id="profil" autocomplete="off" novalidate>
           <h3>Bilgilerin</h3>
+          <fieldset>
+            <legend>Hangi ilanları bekliyorsun?</legend>
+            <div class="turler">
+              <label class="tur" for="kat-askeri"><input type="checkbox" id="kat-askeri" value="askeri"><span><b>Askeri</b><small>Astsubay, subay, uzman erbaş</small></span></label>
+              <label class="tur" for="kat-emniyet"><input type="checkbox" id="kat-emniyet" value="emniyet"><span><b>Polislik</b><small>POMEM</small></span></label>
+              <label class="tur" for="kat-memur"><input type="checkbox" id="kat-memur" value="memur"><span><b>Memurluk</b><small>Bölüm şartlı ve şartsız</small></span></label>
+              <label class="tur" for="kat-bilisim"><input type="checkbox" id="kat-bilisim" value="bilisim"><span><b>Bilişim</b><small>Sözleşmeli bilişim</small></span></label>
+            </div>
+            <p class="hint">Seçmezsen bütün açık ilanları gösteririz. Seçersen o türde yayımlanmasını beklediğin ilanları da görürsün.</p>
+          </fieldset>
           <fieldset>
             <legend>Eğitim</legend>
             <label for="bolum">Bölüm, diplomadaki adıyla <span class="zorunlu" aria-hidden="true">*</span>
@@ -436,7 +458,7 @@ footer.alt p { margin: 0; max-width: 62ch; }
         <div id="sonuclar">
           <div class="bekleme" id="bekleme">
             <h3>Sonuçların burada görünecek</h3>
-            <p>Soldaki bilgileri doldurup Araştır'a bas. Sadece başvurusu açık ya da yakında açılacak ilanları gösteririz; sana uymayanları ayrı bir bölümde, nedenleriyle birlikte tutarız.</p>
+            <p>Soldaki bilgileri doldurup Araştır'a bas. Başvurusu açık ya da yakında açılacak ilanları ve beklediğin türde her yıl açılan ilanları gösteririz; sana uymayanları ayrı bir bölümde, nedenleriyle birlikte tutarız.</p>
             <button type="button" class="ornek-btn" id="ornekBtn">Örnek profille dene</button>
           </div>
 
@@ -467,9 +489,10 @@ footer.alt p { margin: 0; max-width: 62ch; }
         <div class="blok-bas" style="margin-bottom:0">
           <span class="etiket-mono">Hatırlatma</span>
           <h2 id="hatirlatmaBaslik">Son başvuru gününü kaçırma</h2>
-          <p>Kaydettiğin ilanlar için e-posta gönderiyoruz. Aynı gün birden fazla ilanın varsa hepsi tek bir e-postada gelir.</p>
+          <p>Beklediğin türde yeni ilan çıktığında ve kaydettiğin ilanların tarihleri yaklaştığında e-posta gönderiyoruz. Aynı gün birden fazla haber varsa hepsi tek bir e-postada gelir.</p>
         </div>
         <ul class="ozellik-liste">
+          <li>Beklediğin türde sana uygun yeni ilan eklendiğinde haber</li>
           <li>Başvuru açıldığı gün haber</li>
           <li>Son başvurudan 3 gün ve 1 gün önce hatırlatma</li>
           <li>Son gün sabahı son uyarı</li>
@@ -498,7 +521,8 @@ footer.alt p { margin: 0; max-width: 62ch; }
         <details><summary>Bilgilerim nereye gidiyor?</summary><p>Eşleştirme senin tarayıcında yapılır. Giriş yapmazsan bilgilerin hiçbir yere gönderilmez. Hatırlatma için giriş yaparsan profilin ve takip listen yalnızca sana gönderilecek e-postaları hesaplamak için saklanır; hesabını silince hepsi silinir.</p></details>
         <details><summary>Bölümüm listede yok, ne yapmalıyım?</summary><p>Diplomandaki adı birebir yaz. Kamu ilanlarında "benzer bölüm" kabul edilmez; bölüm adı ilandaki tabloda nasıl geçiyorsa öyle aranır. Adın listemizde olmaması, hiçbir ilanda geçmediği anlamına gelebilir.</p></details>
         <details><summary>İlanlar ne kadar güncel?</summary><p>İlanları resmi kılavuzlardan ve duyurulardan derliyoruz. Her ilanın üstünde kaynağı ve "resmi metin" ya da "haber özeti" etiketi var. Başvurmadan önce kurumun resmi ilan metnini mutlaka oku.</p></details>
-        <details><summary>Ücretli mi?</summary><p>Eşleştirme ve son başvuru hatırlatmaları ücretsiz. Sınav sonuçlarını ve sonraki dönemi takip eden ek hatırlatmalar ileride ayrı bir paket olarak gelecek.</p></details>
+        <details><summary>Ücretli mi?</summary><p>Eşleştirme, yeni ilan haberleri ve son başvuru hatırlatmaları ücretsiz. Sınav sonuçlarını ve sonraki dönemi takip eden ek hatırlatmalar ileride ayrı bir paket olarak gelecek.</p></details>
+        <details><summary>"Bekleniyor" yazan ilanlar ne demek?</summary><p>Jandarma astsubaylığı, POMEM ya da uzman erbaş gibi alımlar her yıl benzer dönemlerde açılır. Bunları geçen yılın şartlarıyla gösteriyoruz ki ilan çıkmadan şartları karşılayıp karşılamadığını gör. İlan yayımlanınca şartları güncelliyoruz; o türü seçtiysen ya da ilanı kaydettiysen sana e-postayla haber veriyoruz.</p></details>
         <details><summary>Resmi bir kurum musunuz?</summary><p>Hayır. Kadroya, CWTCH'in geliştirdiği bağımsız bir araç; hiçbir kamu kurumuyla bağlantısı yok. Başvurular kurumların kendi sistemlerinden ya da Kariyer Kapısı'ndan yapılır.</p></details>
       </div>
     </div>
@@ -522,7 +546,7 @@ footer.alt p { margin: 0; max-width: 62ch; }
     <div class="pencere-ust">
       <div class="takvim" aria-hidden="true"><span>SON GÜN</span><b>16</b></div>
       <h2 id="karsilamaBaslik">Başvuru tarihlerini sana hatırlatalım mı?</h2>
-      <p>Kaydettiğin ilanlar için başvuru açıldığında, son günden 3 gün ve 1 gün önce ve son gün sabahı e-posta gönderelim.</p>
+      <p>Beklediğin türde sana uygun yeni ilan çıktığında ve kaydettiğin ilanların son günü yaklaştığında e-posta gönderelim.</p>
     </div>
     <div class="pencere-govde">
       <form id="girisForm" novalidate>
@@ -685,12 +709,13 @@ var KamuEslestir = (() => {
   function kuralDegerlendir(k, p) {
     switch (k.tip) {
       case "ogrenim": {
-        const ok = OGRENIM_SIRASI.indexOf(p.ogrenim) >= OGRENIM_SIRASI.indexOf(k.enAz);
-        return sonuc(
-          k,
-          ok ? "uygun" : "uygun_degil",
-          ok ? `En az ${OGRENIM_AD[k.enAz]} mezunu olmak gerekiyor; sen ${OGRENIM_AD[p.ogrenim]} mezunusun.` : `En az ${OGRENIM_AD[k.enAz]} mezuniyeti gerekiyor.`
-        );
+        const sira = OGRENIM_SIRASI.indexOf(p.ogrenim);
+        if (sira < OGRENIM_SIRASI.indexOf(k.enAz))
+          return sonuc(k, "uygun_degil", `En az ${OGRENIM_AD[k.enAz]} mezuniyeti gerekiyor.`);
+        if (k.enFazla && sira > OGRENIM_SIRASI.indexOf(k.enFazla))
+          return sonuc(k, "uygun_degil", `Bu kontenjan ${OGRENIM_AD[k.enFazla]} mezunlar\u0131 i\xE7in; sen ${OGRENIM_AD[p.ogrenim]} mezunusun, kendi d\xFCzeyindeki kontenjana bak.`);
+        const sart = k.enFazla === k.enAz ? `${OGRENIM_AD[k.enAz]} mezunu olmak` : `En az ${OGRENIM_AD[k.enAz]} mezunu olmak`;
+        return sonuc(k, "uygun", `${sart} gerekiyor; sen ${OGRENIM_AD[p.ogrenim]} mezunusun.`);
       }
       case "bolum": {
         if (k.herBolum) return sonuc(k, "uygun", "T\xFCm b\xF6l\xFCmlerden mezunlar ba\u015Fvurabiliyor.");
@@ -799,6 +824,8 @@ var KamuEslestir = (() => {
         );
       case "manuel":
         return sonuc(k, "kontrol", k.aciklama);
+      case "bolumTablo":
+        return sonuc(k, "kontrol", k.aciklama);
     }
   }
   function kadroDegerlendir(ilan, kadro, p) {
@@ -832,12 +859,16 @@ var KamuEslestir = (() => {
       return { ilan, ...ilanZamani(ilan, bugun), kadrolar, enIyi };
     }).sort((a, b) => DURUM_SIRA[a.enIyi] - DURUM_SIRA[b.enIyi] || ZAMAN_SIRA[a.zaman] - ZAMAN_SIRA[b.zaman]);
   }
-  function gruplandir(sonuclar) {
-    const aktif = sonuclar.filter((s) => s.zaman !== "kapandi");
+  function gruplandir(sonuclar, kategoriler) {
+    const secimVar = !!kategoriler && kategoriler.length > 0;
+    const ilgili = sonuclar.filter((s) => !secimVar || kategoriler.includes(s.ilan.kategori));
+    const aktif = ilgili.filter((s) => s.zaman === "acik" || s.zaman === "yakinda");
     return {
       uygun: aktif.filter((s) => s.enIyi !== "uygun_degil"),
       uygunDegil: aktif.filter((s) => s.enIyi === "uygun_degil"),
-      kapanan: sonuclar.filter((s) => s.zaman === "kapandi")
+      beklenen: secimVar ? ilgili.filter((s) => s.zaman === "bekleniyor") : [],
+      kapanan: ilgili.filter((s) => s.zaman === "kapandi"),
+      digerTurler: secimVar ? sonuclar.filter((s) => !kategoriler.includes(s.ilan.kategori) && (s.zaman === "acik" || s.zaman === "yakinda")).length : 0
     };
   }
 
@@ -866,7 +897,7 @@ var KamuEslestir = (() => {
         plan.push({
           tur: "yayin",
           tarih: null,
-          paket: "plus",
+          paket: "ucretsiz",
           mesaj: uygunluk === "uygun_degil" ? `${ilan.baslik} yay\u0131mlan\u0131nca haber ver ve yeni \u015Fartlara g\xF6re tekrar kontrol et.` : `${ilan.baslik} yay\u0131mland\u0131\u011F\u0131 g\xFCn, \u015Fartlar\u0131n sana uyup uymad\u0131\u011F\u0131yla birlikte haber ver.`
         });
         break;
@@ -1037,6 +1068,8 @@ var KamuEslestir = (() => {
     kurum: "Jandarma Genel Komutanl\u0131\u011F\u0131",
     baslik: "2026 Y\u0131l\u0131 A\xE7\u0131ktan Devlet Memuru Temini (30 kadro)",
     tip: "memur",
+    kategori: "memur",
+    eklendi: "2026-11-03",
     basvuruBaslangic: "2026-11-02",
     sonBasvuru: "2026-11-16",
     kesinlik: "resmi-metin",
@@ -1204,6 +1237,8 @@ var KamuEslestir = (() => {
     kurum: "T\xFCrkiye \u0130\u015F Kurumu (\u0130\u015EKUR)",
     baslik: "11 S\xF6zle\u015Fmeli Bili\u015Fim Personeli",
     tip: "sozlesmeli-bilisim",
+    kategori: "bilisim",
+    eklendi: "2026-11-03",
     basvuruBaslangic: "2026-10-26",
     sonBasvuru: "2026-11-08",
     kesinlik: "haber-ozeti",
@@ -1230,6 +1265,8 @@ var KamuEslestir = (() => {
     kurum: "Tar\u0131m ve Orman Bakanl\u0131\u011F\u0131",
     baslik: "13 S\xF6zle\u015Fmeli Bili\u015Fim Personeli",
     tip: "sozlesmeli-bilisim",
+    kategori: "bilisim",
+    eklendi: "2026-11-03",
     basvuruBaslangic: "2026-10-22",
     sonBasvuru: "2026-11-06",
     kesinlik: "haber-ozeti",
@@ -1261,6 +1298,8 @@ var KamuEslestir = (() => {
     kurum: "Kar\u015F\u0131yaka Belediyesi (\u0130zmir)",
     baslik: "6 Bilgisayar \u0130\u015Fletmeni (Memur)",
     tip: "memur",
+    kategori: "memur",
+    eklendi: "2026-11-03",
     basvuruBaslangic: "2026-11-30",
     sonBasvuru: "2026-12-02",
     kesinlik: "haber-ozeti",
@@ -1287,6 +1326,8 @@ var KamuEslestir = (() => {
     kurum: "Mill\xEE Savunma Bakanl\u0131\u011F\u0131",
     baslik: "Kara, Deniz, Hava Kuvvetleri Muvazzaf Subay Temini (1.339)",
     tip: "subay",
+    kategori: "askeri",
+    eklendi: "2026-11-03",
     basvuruBaslangic: "2026-10-12",
     sonBasvuru: "2026-11-02",
     kesinlik: "haber-ozeti",
@@ -1320,6 +1361,8 @@ var KamuEslestir = (() => {
     kurum: "Jandarma Genel Komutanl\u0131\u011F\u0131",
     baslik: "2027 Y\u0131l\u0131 Muvazzaf Subay Temini (135)",
     tip: "subay",
+    kategori: "askeri",
+    eklendi: "2026-11-03",
     sonBasvuru: "2026-10-26",
     kesinlik: "haber-ozeti",
     kaynaklar: ["https://www.milligazete.com.tr/jandarma-kadin-subay-alimi-2026-kac-kisi-hangi-branslar-var-yas-siniri-kac-basvurular-nereden-yapilacak"],
@@ -1339,6 +1382,195 @@ var KamuEslestir = (() => {
     ]
   };
 
+  // src/data/kategori-ilanlari.ts
+  var msbAstsubay2026 = {
+    id: "msb-astsubay-2026",
+    kurum: "Mill\xEE Savunma Bakanl\u0131\u011F\u0131",
+    baslik: "2026 Y\u0131l\u0131 Astsubay Temini (3.906)",
+    tip: "astsubay",
+    kategori: "askeri",
+    eklendi: "2026-11-09",
+    basvuruBaslangic: "2026-11-02",
+    sonBasvuru: "2026-11-23",
+    kesinlik: "haber-ozeti",
+    kaynaklar: [
+      "https://www.milligazete.com.tr/msb-2026-astsubay-alimi-basvurulari-kpss-60-puan-yas-sarti-kontenjanlar-ve-basvuru-ekrani",
+      "https://personeltemin.msb.gov.tr/"
+    ],
+    genelNotlar: [
+      "Ba\u015Fvuru e-Devlet \u015Fifresiyle, son g\xFCn 23 Kas\u0131m saat 17.30. Ba\u015Fvuru \xFCcreti 600 TL, ayn\u0131 g\xFCn 23.30'a kadar Vak\u0131fBank'a yat\u0131r\u0131l\u0131r.",
+      "88 kontenjan kad\u0131n adaylara ayr\u0131lm\u0131\u015F."
+    ],
+    kadrolar: [
+      {
+        id: "lisans",
+        unvan: "Lisans mezunlar\u0131",
+        kontenjan: 0,
+        kurallar: [
+          { tip: "ogrenim", enAz: "lisans" },
+          { tip: "kpss", puanTuru: "P3", enAz: 60, yillar: [2025, 2026] },
+          { tip: "yasBitirmemis", yas: 27, referans: "2026-01-01" },
+          { tip: "bolumTablo", aciklama: "B\xF6l\xFCm\xFCn, ba\u015Fvurdu\u011Fun s\u0131n\u0131f\u0131n kaynak okul tablosunda olmal\u0131. K\u0131lavuzdaki tabloya bak." },
+          { tip: "manuel", aciklama: "Fiziki yeterlilik, sa\u011Fl\u0131k ve g\xFCvenlik soru\u015Fturmas\u0131 a\u015Famalar\u0131 var." }
+        ]
+      },
+      {
+        id: "onlisans",
+        unvan: "\xD6n lisans mezunlar\u0131",
+        kontenjan: 0,
+        kurallar: [
+          { tip: "ogrenim", enAz: "onlisans", enFazla: "onlisans" },
+          { tip: "kpss", puanTuru: "P93", enAz: 60, yillar: [2026] },
+          { tip: "yasBitirmemis", yas: 25, referans: "2026-01-01" },
+          { tip: "bolumTablo", aciklama: "B\xF6l\xFCm\xFCn, ba\u015Fvurdu\u011Fun s\u0131n\u0131f\u0131n kaynak okul tablosunda olmal\u0131. K\u0131lavuzdaki tabloya bak." }
+        ]
+      }
+    ]
+  };
+  var jandarmaAstsubay2027 = {
+    id: "jandarma-astsubay-2027",
+    kurum: "Jandarma Genel Komutanl\u0131\u011F\u0131",
+    baslik: "2027 Y\u0131l\u0131 Muvazzaf / S\xF6zle\u015Fmeli Astsubay Temini (bekleniyor)",
+    tip: "astsubay",
+    kategori: "askeri",
+    eklendi: "2026-11-09",
+    kesinlik: "gecmis-ilanlara-gore",
+    kaynaklar: ["https://parkurrehberi.com/jandarma/astsubay/", "https://www.jsga.edu.tr"],
+    genelNotlar: [
+      "2026 ilan\u0131nda ba\u015Fvurular 26 Ocak\u20139 \u015Eubat aras\u0131ndayd\u0131; 2027 ilan\u0131n\u0131n Ocak\u2013\u015Eubat 2027'de a\xE7\u0131lmas\u0131 bekleniyor.",
+      "\u015Eartlar 2026 ilan\u0131na g\xF6re, ya\u015F s\u0131n\u0131r\u0131 bir y\u0131l kayd\u0131r\u0131larak g\xF6steriliyor. \u0130lan yay\u0131mlan\u0131nca g\xFCncellenecek."
+    ],
+    kadrolar: [
+      {
+        id: "lisans-jandarma",
+        unvan: "Jandarma bran\u015F\u0131, lisans",
+        kontenjan: 0,
+        kurallar: [
+          { tip: "ogrenim", enAz: "lisans" },
+          { tip: "bolum", herBolum: true },
+          { tip: "kpss", puanTuru: "P3", enAz: 60, yillar: [2025, 2026] },
+          { tip: "yasBitirmemis", yas: 27, referans: "2027-01-01" },
+          { tip: "manuel", aciklama: "Boy: erkek en az 167 cm, kad\u0131n en az 162 cm. Fiziki yeterlilik ve s\xF6zl\xFC s\u0131nav var." }
+        ]
+      },
+      {
+        id: "onlisans-jandarma",
+        unvan: "Jandarma bran\u015F\u0131, \xF6n lisans",
+        kontenjan: 0,
+        kurallar: [
+          { tip: "ogrenim", enAz: "onlisans", enFazla: "onlisans" },
+          { tip: "bolum", herBolum: true },
+          { tip: "kpss", puanTuru: "P93", enAz: 60, yillar: [2026] },
+          { tip: "yasBitirmemis", yas: 27, referans: "2027-01-01" },
+          { tip: "manuel", aciklama: "Boy: erkek en az 167 cm, kad\u0131n en az 162 cm." }
+        ]
+      }
+    ]
+  };
+  var uzmanErbasDonemlik = {
+    id: "uzman-erbas-donemlik",
+    kurum: "MSB / Jandarma Genel Komutanl\u0131\u011F\u0131",
+    baslik: "Uzman Erba\u015F Al\u0131m\u0131 (d\xF6nemlik, bekleniyor)",
+    tip: "uzman-erbas",
+    kategori: "askeri",
+    eklendi: "2026-11-09",
+    kesinlik: "gecmis-ilanlara-gore",
+    kaynaklar: ["https://ilan.memurlar.net/ilan/85712/msb-2026-3-donem-uzman-erbas-alimi-basvurulari-basladi.html"],
+    genelNotlar: ["Son MSB d\xF6nemi (2026/3) 9 A\u011Fustos 2026'da kapand\u0131. Yaz\u0131l\u0131 s\u0131nav yok; fiziki de\u011Ferlendirme, uygulama s\u0131nav\u0131 ve m\xFClakat var."],
+    kadrolar: [
+      {
+        id: "uzman-erbas",
+        unvan: "Uzman erba\u015F",
+        kontenjan: 0,
+        kurallar: [
+          { tip: "ogrenim", enAz: "ortaogretim" },
+          { tip: "cinsiyet", izinli: ["E"] },
+          { tip: "yasBitirmemis", yas: 27, referans: "2027-01-01" }
+        ]
+      }
+    ]
+  };
+  var pomem34 = {
+    id: "pomem-34-donem",
+    kurum: "Polis Akademisi Ba\u015Fkanl\u0131\u011F\u0131 (POMEM)",
+    baslik: "34. D\xF6nem Polis Meslek E\u011Fitimi (bekleniyor)",
+    tip: "polis",
+    kategori: "emniyet",
+    eklendi: "2026-11-09",
+    kesinlik: "gecmis-ilanlara-gore",
+    kaynaklar: ["https://www.isinolsa.com/34-donem-pomem-ne-zaman-2026-polis-alimi-sartlari-nedir/", "https://www.pa.edu.tr"],
+    genelNotlar: [
+      "33. d\xF6nemde 10.000 kontenjan vard\u0131 (lisans 8.000, \xF6n lisans 2.000). 34. d\xF6nemin Kas\u0131m\u2013Aral\u0131k 2026'da a\xE7\u0131lmas\u0131 bekleniyor.",
+      "\u015Eartlar 33. d\xF6neme g\xF6re. Hangi y\u0131l\u0131n KPSS puan\u0131n\u0131n ge\xE7erli olaca\u011F\u0131 ilan \xE7\u0131k\u0131nca netle\u015Fecek."
+    ],
+    kadrolar: [
+      {
+        id: "pomem-lisans",
+        unvan: "Lisans mezunlar\u0131",
+        kontenjan: 8e3,
+        kurallar: [
+          { tip: "ogrenim", enAz: "lisans" },
+          { tip: "bolum", herBolum: true },
+          { tip: "kpss", puanTuru: "P3", enAz: 60, yillar: [2025, 2026] },
+          { tip: "yasBitirmemis", yas: 30, referans: "2027-01-01" },
+          { tip: "manuel", aciklama: "Boy: erkek en az 167 cm, kad\u0131n en az 162 cm; v\xFCcut kitle indeksi 18\u201327 aras\u0131." }
+        ]
+      },
+      {
+        id: "pomem-onlisans",
+        unvan: "\xD6n lisans mezunlar\u0131",
+        kontenjan: 2e3,
+        kurallar: [
+          { tip: "ogrenim", enAz: "onlisans", enFazla: "onlisans" },
+          { tip: "bolum", herBolum: true },
+          { tip: "kpss", puanTuru: "P93", enAz: 65, yillar: [2025, 2026] },
+          { tip: "yasBitirmemis", yas: 30, referans: "2027-01-01" },
+          { tip: "manuel", aciklama: "Boy: erkek en az 167 cm, kad\u0131n en az 162 cm; v\xFCcut kitle indeksi 18\u201327 aras\u0131." }
+        ]
+      }
+    ]
+  };
+  var ZABITA_NOT = { tip: "manuel", aciklama: "Zab\u0131ta ilanlar\u0131nda genelde boy, ya\u015F ve s\xFCr\xFCc\xFC belgesi \u015Fart\u0131 da olur; ilan metnine bak." };
+  var izmirZabita2026 = {
+    id: "izmir-bb-zabita-2026",
+    kurum: "\u0130zmir B\xFCy\xFCk\u015Fehir Belediyesi",
+    baslik: "90 Zab\u0131ta Memuru",
+    tip: "memur",
+    kategori: "memur",
+    eklendi: "2026-11-09",
+    basvuruBaslangic: "2026-11-30",
+    sonBasvuru: "2026-12-04",
+    kesinlik: "haber-ozeti",
+    kaynaklar: ["https://www.isinolsa.com/kasim-ayi-memur-personel-alimi-1969-kontenjan-38-binlik-alimda-takvim-bekleniyor/"],
+    genelNotlar: ["Haberde b\xF6l\xFCm \u015Fart\u0131 belirtilmemi\u015F; ilan metni yay\u0131mlan\u0131nca kontrol et."],
+    kadrolar: [
+      {
+        id: "zabita-lisans",
+        unvan: "Zab\u0131ta memuru (lisans)",
+        kontenjan: 60,
+        iller: ["\u0130zmir"],
+        kurallar: [
+          { tip: "ogrenim", enAz: "lisans" },
+          { tip: "bolum", herBolum: true },
+          { tip: "kpss", puanTuru: "P3", enAz: 65, yillar: [2026] },
+          ZABITA_NOT
+        ]
+      },
+      {
+        id: "zabita-onlisans",
+        unvan: "Zab\u0131ta memuru (\xF6n lisans)",
+        kontenjan: 30,
+        iller: ["\u0130zmir"],
+        kurallar: [
+          { tip: "ogrenim", enAz: "onlisans", enFazla: "onlisans" },
+          { tip: "bolum", herBolum: true },
+          { tip: "kpss", puanTuru: "P93", enAz: 65, yillar: [2026] },
+          ZABITA_NOT
+        ]
+      }
+    ]
+  };
+
   // src/data/index.ts
   var ILANLAR = [
     jgkAciktanMemur2026,
@@ -1346,7 +1578,12 @@ var KamuEslestir = (() => {
     tarimBilisim2026,
     karsiyakaBilgisayarIsletmeni,
     msbSubay2026,
-    jandarmaSubay2027
+    jandarmaSubay2027,
+    msbAstsubay2026,
+    jandarmaAstsubay2027,
+    uzmanErbasDonemlik,
+    pomem34,
+    izmirZabita2026
   ];
   return __toCommonJS(browser_exports);
 })();
@@ -1376,8 +1613,10 @@ var KamuEslestir = (() => {
   const ilkSonuclar = eslestir(ILANLAR, { ogrenim: "lisans", bolum: "x", dogumTarihi: "2000-01-01", cinsiyet: "K", askerlik: "yok", kpss: [], sgkBilisimDeneyimYil: 0, kamudaCalisiyor657: false }, bugun);
   const acikSayi = ilkSonuclar.filter((s) => s.zaman === "acik" || s.zaman === "yakinda").length;
   const kadroSayi = ilkSonuclar.filter((s) => s.zaman !== "kapandi").reduce((t, s) => t + s.ilan.kadrolar.length, 0);
+  const beklenenSayi = ilkSonuclar.filter((s) => s.zaman === "bekleniyor").length;
   $("heroKanit").innerHTML =
-    "<span><b>" + acikSayi + "</b> açık ya da yakında açılacak ilan</span>" +
+    "<span><b>" + acikSayi + "</b> açık ilan</span>" +
+    "<span><b>" + beklenenSayi + "</b> beklenen ilan</span>" +
     "<span><b>" + kadroSayi + "</b> kadro</span>" +
     "<span><b>" + BOLUMLER.length + "</b> bölüm adı</span>";
 
@@ -1402,7 +1641,7 @@ var KamuEslestir = (() => {
     $("ornekKartlar").innerHTML = kartlar + '<p class="ornek-not">Örnek: bilgisayar mühendisi, 1999 doğumlu, KPSS P3 72,4, 1 yıl deneyim</p>';
   })();
 
-  const seritOgeleri = [...new Set(ILANLAR.map((i) => i.kurum))].concat(["KPSS P3", "ALES EA", "YDS", "657 sayılı DMK", "375 sayılı KHK", "Kariyer Kapısı", "Tecil", "Bölüm tablosu"]);
+  const seritOgeleri = [...new Set(ILANLAR.map((i) => i.kurum))].concat(["Astsubay", "POMEM", "Uzman erbaş", "Zabıta", "KPSS P3", "KPSS P93", "ALES EA", "657 sayılı DMK", "Kariyer Kapısı", "Tecil"]);
   $("serit").innerHTML = seritOgeleri.concat(seritOgeleri).map((t) => "<span>" + esc(t) + "</span>").join("");
 
   // Hatırlatma bölümündeki zaman çizelgesi: en yakın açık ilan üzerinden.
@@ -1450,7 +1689,9 @@ var KamuEslestir = (() => {
   })();
 
   // ── Form ──
-  const ALANLAR = ["bolum", "ogrenim", "dogum", "cinsiyet", "askerlik", "kpssPuan", "kpssTur", "kpssYil", "ales", "yds", "deneyim", "kamu"];
+  const TURLER = ["askeri", "emniyet", "memur", "bilisim"];
+  const ALANLAR = ["bolum", "ogrenim", "dogum", "cinsiyet", "askerlik", "kpssPuan", "kpssTur", "kpssYil", "ales", "yds", "deneyim", "kamu"].concat(TURLER.map((t) => "kat-" + t));
+  const seciliTurler = () => TURLER.filter((t) => $("kat-" + t).checked);
   const KEY = "kadro-eslestir-profil";
   function formOku() { const o = {}; ALANLAR.forEach((a) => { const el = $(a); o[a] = el.type === "checkbox" ? el.checked : el.value; }); return o; }
   function formYaz(o) { ALANLAR.forEach((a) => { if (a in o) { const el = $(a); el.type === "checkbox" ? (el.checked = !!o[a]) : (el.value = o[a] ?? ""); } }); askerlikGoster(); }
@@ -1519,6 +1760,7 @@ var KamuEslestir = (() => {
       ales: ales === undefined ? [] : [{ tur: "EA", puan: ales, yil: 2026 }],
       sgkBilisimDeneyimYil: num("deneyim") || 0,
       kamudaCalisiyor657: $("kamu").checked,
+      kategoriler: seciliTurler(),
     };
     if (yds !== undefined) p.yds = yds;
     return p;
@@ -1606,25 +1848,40 @@ var KamuEslestir = (() => {
     if (!sonProfil) return;
     const sonuclar = eslestir(ILANLAR, sonProfil, bugun);
     takipCiz(sonuclar);
-    const g = gruplandir(sonuclar);
+    const turler = sonProfil.kategoriler || [];
+    const g = gruplandir(sonuclar, turler);
     const kadrolar = g.uygun.concat(g.uygunDegil).flatMap((s) => s.kadrolar.map((k) => k.durum));
     const say = (d) => kadrolar.filter((x) => x === d).length;
     $("sayilar").innerHTML =
       '<span class="sayi ok"><b>' + say("uygun") + "</b> kadroya başvurabilirsin</span>" +
       (say("kontrol") ? '<span class="sayi warn"><b>' + say("kontrol") + "</b> kontrol et</span>" : "") +
-      '<span class="sayi bad"><b>' + say("uygun_degil") + "</b> uygun değil</span>";
+      '<span class="sayi bad"><b>' + say("uygun_degil") + "</b> uygun değil</span>" +
+      (g.beklenen.length ? '<span class="sayi beklenen"><b>' + g.beklenen.filter((s) => s.enIyi !== "uygun_degil").length + "</b> beklenen ilana uygunsun</span>" : "");
 
-    let html = '<p class="grup-baslik">Sana uygun ilanlar</p>';
+    const TUR_AD = { askeri: "askeri", emniyet: "polislik", memur: "memurluk", bilisim: "bilişim" };
+    const turMetni = turler.map((t) => TUR_AD[t]).join(", ");
+    let html = '<p class="grup-baslik">Sana uygun açık ilanlar' + (turler.length ? " · " + esc(turMetni) : "") + "</p>";
     html += g.uygun.length
       ? '<div class="ilanlar">' + g.uygun.map(ilanHTML).join("") + "</div>"
-      : '<div class="sonuc-bos"><b>Şu an açık ilanlarda sana uygun kadro yok.</b> Yeni ilanlar ekledikçe burada görünecek. Neden uymadığını aşağıdaki ilanlarda görebilirsin.</div>';
+      : '<div class="sonuc-bos"><b>Şu an ' + (turler.length ? "seçtiğin türlerdeki " : "") + "açık ilanlarda sana uygun kadro yok.</b> " +
+        (g.beklenen.length ? "Aşağıda yayımlanmasını beklediğin ilanlar var." : "Yeni ilanlar ekledikçe burada görünecek.") + "</div>";
+    if (g.beklenen.length) {
+      const haber = kullanici && $("bildirimAcik").checked
+        ? "Yayımlandıklarında " + esc(kullanici.email) + " adresine haber vereceğiz."
+        : 'Yayımlandıklarında haber almak için <button type="button" class="metin-btn" data-hatirlatma>e-postanla hatırlatma al</button>.';
+      html += '<p class="grup-baslik">Beklediğin ilanlar · henüz yayımlanmadı</p><p class="bekleme-notu">Her yıl açılan bu ilanları geçen yılın şartlarıyla kontrol ettik. ' + haber + "</p>" +
+        '<div class="ilanlar">' + g.beklenen.map(ilanHTML).join("") + "</div>";
+    }
     if (g.uygunDegil.length)
-      html += '<details class="uygun-olmayan"' + (g.uygun.length ? "" : " open") + '><summary>Açık ama sana uygun olmayan ' + g.uygunDegil.length + " ilan</summary>" +
+      html += '<details class="uygun-olmayan"' + (g.uygun.length || g.beklenen.length ? "" : " open") + '><summary>Açık ama sana uygun olmayan ' + g.uygunDegil.length + " ilan</summary>" +
         '<div class="ilanlar">' + g.uygunDegil.map(ilanHTML).join("") + "</div></details>";
+    if (g.digerTurler)
+      html += '<p class="diger-not">Seçmediğin türlerde ' + g.digerTurler + " açık ilan daha var. Görmek için yukarıdan türleri değiştir ya da hepsinin seçimini kaldır.</p>";
     if (g.kapanan.length)
       html += '<p class="kapanan-not">Başvurusu kapanan ' + g.kapanan.length + " ilan gösterilmiyor.</p>";
     $("ilanAlani").innerHTML = html;
     $("ilanAlani").querySelectorAll("[data-kaydet]").forEach((b) => b.addEventListener("click", () => takipDegistir(b.dataset.kaydet)));
+    $("ilanAlani").querySelectorAll("[data-hatirlatma]").forEach((b) => b.addEventListener("click", karsilamaAc));
   }
 
   $("profil").addEventListener("input", (e) => {
@@ -1702,6 +1959,7 @@ var KamuEslestir = (() => {
     const k = (p.kpss || [])[0]; $("kpssPuan").value = k ? k.puan : ""; if (k) { ata("kpssTur", k.tur); ata("kpssYil", k.yil); }
     const a = (p.ales || [])[0]; $("ales").value = a ? a.puan : "";
     $("yds").value = p.yds ?? ""; ata("deneyim", p.sgkBilisimDeneyimYil); $("kamu").checked = !!p.kamudaCalisiyor657;
+    TURLER.forEach((t) => { $("kat-" + t).checked = (p.kategoriler || []).includes(t); });
     askerlikGoster();
   }
 

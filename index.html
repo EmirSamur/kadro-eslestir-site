@@ -455,7 +455,7 @@ footer.alt p { margin: 0; max-width: 62ch; }
             <div class="row3">
               <label for="kpssPuan">KPSS puanı <input id="kpssPuan" type="number" step="0.01" min="0" max="100" placeholder="yok" aria-describedby="kpssHata"></label>
               <label for="kpssTur">Tür
-                <select id="kpssTur"><option>P3</option><option>P93</option><option>P94</option><option>P4</option></select>
+                <select id="kpssTur"><option>P3</option><option>P1</option><option>P2</option><option>P93</option><option>P94</option><option>P4</option></select>
               </label>
               <label for="kpssYil">Yıl
                 <select id="kpssYil"><option>2026</option><option>2025</option><option>2024</option></select>
@@ -906,11 +906,16 @@ var KamuEslestir = (() => {
       }
       case "kpss": {
         const en = enIyiKpss(p, k.puanTuru, k.yillar);
-        if (!en) return sonuc(
-          k,
-          "uygun_degil",
-          `${k.yillar.join(" veya ")} KPSS'den ${k.puanTuru} puan\u0131n yok.`
-        );
+        if (!en) {
+          const LISANS = ["P1", "P2", "P3"];
+          const baska = LISANS.includes(k.puanTuru) ? (p.kpss ?? []).find((x) => k.yillar.includes(x.yil) && LISANS.includes(x.tur)) : void 0;
+          if (baska) return sonuc(
+            k,
+            "kontrol",
+            `${k.puanTuru} en az ${k.enAz} isteniyor; sen ${baska.yil} ${baska.tur} puan\u0131n\u0131 girdin. Sonu\xE7 belgendeki ${k.puanTuru} puan\u0131na bak.`
+          );
+          return sonuc(k, "uygun_degil", `${k.yillar.join(" veya ")} KPSS'den ${k.puanTuru} puan\u0131n yok.`);
+        }
         const ok = en.puan >= k.enAz;
         return sonuc(
           k,
@@ -1744,7 +1749,7 @@ var KamuEslestir = (() => {
 
   // src/ilanSema.ts
   var OGRENIMLER = ["ortaogretim", "onlisans", "lisans", "yukseklisans", "doktora"];
-  var PUAN_TURLERI = ["P3", "P93", "P94", "P4"];
+  var PUAN_TURLERI = ["P1", "P2", "P3", "P93", "P94", "P4"];
   var ALES_TURLERI = ["SAY", "SOZ", "EA"];
   var CINSIYETLER = ["E", "K"];
   var ASKERLIK_DURUMLARI = ["yapildi", "tecilli", "muaf", "yedek", "yok"];

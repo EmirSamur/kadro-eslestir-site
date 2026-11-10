@@ -104,6 +104,15 @@ table.onizleme td.d { text-align: center; font-weight: 700; }
 .not { font-size: 12.5px; color: var(--faint); margin: 6px 0 0; }
 details summary { cursor: pointer; color: var(--muted); font-weight: 600; font-size: 13.5px; }
 textarea.json { font: 12px/1.45 var(--f-mono); min-height: 220px; }
+.kanit { margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); font-size: 13px; }
+.kanit q { display: block; color: var(--ink); font-style: italic; margin: 3px 0 6px; overflow-wrap: anywhere; }
+.kanit .kd { font-weight: 700; font-size: 12px; }
+.kanit .kd.var { color: var(--ok); } .kanit .kd.kismen, .kanit .kd.dayanak-yok, .kanit .kd.metin-yok { color: var(--warn); } .kanit .kd.yok { color: var(--bad); }
+.kanit-alt { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.kanit-alt label { display: inline-flex; gap: 6px; align-items: center; margin: 0; color: var(--ink); font-size: 13px; font-weight: 600; }
+.kural.onayli { border-left-color: var(--ok); }
+.kaynak-metin { white-space: pre-wrap; font: 13px/1.55 var(--f-body); max-height: 380px; overflow: auto; margin: 0; padding: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--muted); }
+.kaynak-metin mark { background: rgba(208,138,79,.35); color: var(--ink); border-radius: 3px; padding: 0 1px; }
 .aday-bilgi { background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; font-size: 13.5px; }
 </style></head>
 <body>
@@ -151,7 +160,7 @@ textarea.json { font: 12px/1.45 var(--f-mono); min-height: 220px; }
     <p class="alt">Toplayıcının resmi kaynaklarda bulduğu duyurular. İlan olanı aç, şartlarını gir ve yayımla; ilgisiz olanı reddet.</p>
     <div class="arac">
       <div><label for="adayDurum">Durum</label>
-        <select id="adayDurum"><option value="yeni">Yeni</option><option value="islendi">İşlendi</option><option value="reddedildi">Reddedildi</option></select></div>
+        <select id="adayDurum"><option value="yeni">Yeni</option><option value="islendi">İşlendi</option><option value="reddedildi">Reddedildi</option><option value="elendi">Otomatik elenen</option></select></div>
       <div><label for="adayAra">Ara</label><input type="text" id="adayAra" placeholder="Başlık ya da kaynak"></div>
       <button class="btn" id="adayYenile">Yenile</button>
       <button class="btn tehlike" id="topluReddet" hidden>Listedekilerin hepsini reddet</button>
@@ -278,12 +287,15 @@ var KadroyaYonetim = (() => {
     OGRENIMLER: () => OGRENIMLER,
     PUAN_TURLERI: () => PUAN_TURLERI,
     eslestir: () => eslestir,
-    ilanDogrula: () => ilanDogrula
+    ilanDogrula: () => ilanDogrula,
+    kanitDurumu: () => kanitDurumu,
+    temizle: () => temizle,
+    yzKomutu: () => yzKomutu
   });
 
   // src/ilanSema.ts
   var OGRENIMLER = ["ortaogretim", "onlisans", "lisans", "yukseklisans", "doktora"];
-  var PUAN_TURLERI = ["P3", "P93", "P94", "P4"];
+  var PUAN_TURLERI = ["P1", "P2", "P3", "P93", "P94", "P4"];
   var ALES_TURLERI = ["SAY", "SOZ", "EA"];
   var CINSIYETLER = ["E", "K"];
   var ASKERLIK_DURUMLARI = ["yapildi", "tecilli", "muaf", "yedek", "yok"];
@@ -697,11 +709,16 @@ var KadroyaYonetim = (() => {
       }
       case "kpss": {
         const en = enIyiKpss(p, k.puanTuru, k.yillar);
-        if (!en) return sonuc(
-          k,
-          "uygun_degil",
-          `${k.yillar.join(" veya ")} KPSS'den ${k.puanTuru} puan\u0131n yok.`
-        );
+        if (!en) {
+          const LISANS = ["P1", "P2", "P3"];
+          const baska = LISANS.includes(k.puanTuru) ? (p.kpss ?? []).find((x) => k.yillar.includes(x.yil) && LISANS.includes(x.tur)) : void 0;
+          if (baska) return sonuc(
+            k,
+            "kontrol",
+            `${k.puanTuru} en az ${k.enAz} isteniyor; sen ${baska.yil} ${baska.tur} puan\u0131n\u0131 girdin. Sonu\xE7 belgendeki ${k.puanTuru} puan\u0131na bak.`
+          );
+          return sonuc(k, "uygun_degil", `${k.yillar.join(" veya ")} KPSS'den ${k.puanTuru} puan\u0131n yok.`);
+        }
         const ok = en.puan >= k.enAz;
         return sonuc(
           k,
@@ -1471,13 +1488,111 @@ var KadroyaYonetim = (() => {
     pomem34,
     izmirZabita2026
   ];
+
+  // src/taslak/komut.ts
+  function ornekDeger(a, yil2) {
+    const t = a.tip;
+    switch (t.tur) {
+      case "secim":
+        return '"' + t.secenekler.join("|") + '"';
+      case "secimCoklu":
+        return '["' + t.secenekler.join('"|"') + '"]';
+      case "sayi":
+        return "say\u0131";
+      case "sayiListe":
+        return "[" + yil2 + "]";
+      case "tarih":
+        return '"YYYY-AA-GG"';
+      case "metin":
+        return '"metin"';
+      case "metinListe":
+        return '["metin"]';
+      case "bool":
+        return "true";
+      case "kosulluListe":
+        return '[{"durum":"tecilli","not":"metin"}]';
+    }
+  }
+  function yzKomutu(b) {
+    const yil2 = Number(b.bugun.slice(0, 4));
+    const kurallar = Object.entries(KURAL_SEMA).map(([tip, t]) => "- " + JSON.stringify({ tip }).slice(0, -1) + t.alanlar.map((a) => ',"' + a.ad + '"' + (a.zorunlu ? "" : "?") + ":" + ornekDeger(a, yil2)).join("") + ',"_kanit":"\u2026"}  \u2192 ' + t.aciklama).join("\n");
+    const ip = b.ipuclari ?? {};
+    const kesin = [
+      ip.kurum && `Kurum: ${ip.kurum}`,
+      ip.basvuruBaslangic && `Ba\u015Fvuru ba\u015Flang\u0131c\u0131: ${ip.basvuruBaslangic}`,
+      ip.sonBasvuru && `Son ba\u015Fvuru: ${ip.sonBasvuru}`,
+      b.kaynakUrl && `Kaynak ba\u011Flant\u0131s\u0131: ${b.kaynakUrl}`
+    ].filter(Boolean);
+    return [
+      "A\u015Fa\u011F\u0131daki T\xFCrkiye kamu personel al\u0131m ilan\u0131n\u0131, \u015Fartlar\u0131n\u0131 eksiksiz yans\u0131tan TEK bir JSON nesnesine d\xF6n\xFC\u015Ft\xFCr. Yaln\u0131zca JSON yaz, a\xE7\u0131klama yazma.",
+      'Metin bir personel al\u0131m ilan\u0131 de\u011Filse (ihale, iptal, d\xFCzeltme, akademik kadro, sonu\xE7 duyurusu vb.) yaln\u0131zca \u015Funu yaz: {"ilanDegil":true,"neden":"k\u0131sa a\xE7\u0131klama"}',
+      "",
+      "\u0130lan bi\xE7imi:",
+      '{"id":"kucuk-harf-tire-yil","kurum":"","baslik":"","tip":"' + ILAN_TIPLERI.join("|") + '","kategori":"' + KATEGORI_LISTESI.join("|") + '",',
+      ' "eklendi":"' + b.bugun + '","basvuruBaslangic":"YYYY-AA-GG","sonBasvuru":"YYYY-AA-GG","kesinlik":"resmi-metin","kaynaklar":["' + (b.kaynakUrl ?? "resmi ilan ba\u011Flant\u0131s\u0131") + '"],',
+      ' "genelNotlar":["ba\u015Fvuru yeri, y\xF6ntemi, \xFCcret, saat gibi k\u0131sa notlar"],',
+      ' "_kanitlar":{"basvuruBaslangic":"tarihin ge\xE7ti\u011Fi c\xFCmle","sonBasvuru":"tarihin ge\xE7ti\u011Fi c\xFCmle"},',
+      ' "kadrolar":[{"id":"kucuk-harf-tire","unvan":"","kontenjan":0,"iller?":["il"],"notlar?":["not"],"kurallar":[ ...kurallar ]}]}',
+      "",
+      "Kural tipleri (? i\u015Faretli alanlar iste\u011Fe ba\u011Fl\u0131, alan adlar\u0131n\u0131 aynen kullan):",
+      kurallar,
+      "",
+      "DAYANAK (\xE7ok \xF6nemli):",
+      '- Her kural\u0131n "_kanit" alan\u0131na, o kural\u0131 dayand\u0131rd\u0131\u011F\u0131n c\xFCmleyi ilan metninden AYNEN kopyala: kelimesi kelimesine, kendi c\xFCmlenle de\u011Fil, en fazla 300 karakter.',
+      '- Metinde dayana\u011F\u0131 olmayan hi\xE7bir kural ekleme. Tarihlerin ge\xE7ti\u011Fi c\xFCmleleri de "_kanitlar" i\xE7ine aynen yaz.',
+      "",
+      "Kurallar:",
+      "- kategori: askeri (subay, astsubay, uzman erba\u015F, s\xF6zle\u015Fmeli er), emniyet (polis, bek\xE7i), bilisim (bili\u015Fim personeli, programc\u0131, \xE7\xF6z\xFCmleyici, yaz\u0131l\u0131m), di\u011Fer her \u015Fey memur.",
+      "- Farkl\u0131 \xF6\u011Frenim d\xFCzeyi, puan t\xFCr\xFC ya da b\xF6l\xFCm \u015Fart\u0131 olan her pozisyon ayr\u0131 kadro olsun. \u015Eartlar\u0131 ayn\u0131 olan pozisyonlar\u0131 tek kadroda topla, kontenjanlar\u0131 topla.",
+      "- 8'den fazla farkl\u0131 pozisyon varsa \u015Fartlar\u0131 ayn\u0131 olanlar\u0131 grupla; pozisyon adlar\u0131n\u0131 kadronun notlar alan\u0131na yaz.",
+      `- B\xF6l\xFCm \u015Fart\u0131 yoksa {"tip":"bolum","herBolum":true}. 15'ten fazla b\xF6l\xFCm ad\u0131 say\u0131l\u0131yorsa ya da b\xF6l\xFCmler bir tabloda veriliyorsa bolumTablo kullan.`,
+      '- Program adlar\u0131n\u0131 diplomadaki gibi yaz ("Bilgisayar M\xFChendisli\u011Fi", "Bilgisayar Programc\u0131l\u0131\u011F\u0131").',
+      "- KPSS puan t\xFCr\xFCn\xFC ilandaki gibi yaz: KPSSP1 \u2192 P1, KPSSP3 \u2192 P3, KPSSP93 \u2192 P93, KPSSP94 \u2192 P94. yillar: ilanda ge\xE7en s\u0131nav y\u0131llar\u0131.",
+      '- Ya\u015F \u015Fart\u0131 "X ya\u015F\u0131n\u0131 bitirmemi\u015F/doldurmam\u0131\u015F olmak" ise yasBitirmemis; referans: ilandaki tarih (yoksa son ba\u015Fvuru g\xFCn\xFC).',
+      "- Boy, kilo, sa\u011Fl\u0131k, ehliyet, sertifika, ikamet, yabanc\u0131 dil gibi motorun \xF6l\xE7emedi\u011Fi her \u015Fart manuel kural\u0131 olsun. Tercih sebebi olan maddeleri kural yapma, genelNotlar'a yaz.",
+      "- 657 say\u0131l\u0131 Kanun 48. madde genel \u015Fartlar\u0131n\u0131 (vatanda\u015Fl\u0131k, kamu haklar\u0131ndan mahrum olmamak vb.) kural yapma.",
+      "- Metinde olmayan bir \u015Feyi uydurma. Kontenjan bilinmiyorsa 0.",
+      "- Tarihler YYYY-AA-GG. Kimlikler yaln\u0131zca k\xFC\xE7\xFCk harf, rakam ve tire (T\xFCrk\xE7e harf yok).",
+      ...kesin.length ? ["", "Kaynaktan kesin bilinenler (bunlar\u0131 aynen kullan):", ...kesin.map((s) => "- " + s)] : [],
+      "",
+      "\u0130LAN METN\u0130:",
+      b.metin ?? "(buraya ilan\u0131n resmi metnini yap\u0131\u015Ft\u0131r)"
+    ].join("\n");
+  }
+
+  // src/taslak/kanit.ts
+  function karsilastirmaMetni(s) {
+    return s.toLocaleLowerCase("tr-TR").replace(/­/g, "").replace(/-\s*\n\s*/g, "").replace(/[’‘`´]/g, "'").replace(/[“”«»]/g, '"').replace(/[^\p{L}\p{N}'"%/.,:;()+-]+/gu, " ").replace(/\s+/g, " ").trim();
+  }
+  function kanitDurumu(alinti, metin) {
+    if (typeof alinti !== "string" || alinti.trim().length < 4) return "dayanak-yok";
+    if (!metin) return "metin-yok";
+    const m = karsilastirmaMetni(metin), a = karsilastirmaMetni(alinti.replace(/^["'“]|["'”]$/g, "").replace(/\s*(\.\.\.|…)\s*/g, " "));
+    if (!a) return "dayanak-yok";
+    if (m.includes(a)) return "var";
+    const parcalar = a.split(/[,;:]| ve | veya /).map((p) => p.trim()).filter((p) => p.length >= 12);
+    if (parcalar.length && parcalar.filter((p) => m.includes(p)).length / parcalar.length >= 0.6) return "kismen";
+    const kelimeler = a.split(" ").filter((w) => w.length > 3);
+    const mk = new Set(m.split(" "));
+    if (kelimeler.length >= 4 && kelimeler.filter((w) => mk.has(w)).length / kelimeler.length >= 0.85) return "kismen";
+    return "yok";
+  }
+  function temizle(x) {
+    if (Array.isArray(x)) return x.map(temizle);
+    if (x && typeof x === "object") {
+      const o = {};
+      for (const [k, v] of Object.entries(x)) if (!k.startsWith("_")) o[k] = temizle(v);
+      return o;
+    }
+    return x;
+  }
   return __toCommonJS(yonetim_exports);
 })();
 </script>
 <script>
 (function () {
   const Y = window.KadroyaYonetim;
-  const { ilanDogrula, ID_DESENI, KURAL_SEMA, ETIKET, ILAN_TIPLERI, KESINLIKLER, KATEGORI_LISTESI, ASKERLIK_DURUMLARI, eslestir, ILANLAR } = Y;
+  const { ilanDogrula, ID_DESENI, KURAL_SEMA, ETIKET, ILAN_TIPLERI, KESINLIKLER, KATEGORI_LISTESI, ASKERLIK_DURUMLARI, eslestir, ILANLAR, yzKomutu, kanitDurumu, temizle } = Y;
   const $ = (id) => document.getElementById(id);
   const klon = (x) => JSON.parse(JSON.stringify(x));
   const bugun = window.KADRO_BUGUN || new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Istanbul" }).format(new Date());
@@ -1523,11 +1638,17 @@ var KadroyaYonetim = (() => {
   });
 
   // ── Adaylar ──
+  // Liste için metin ve taslak çekilmez (büyük olabilir); aday açılınca ayrıca alınır.
+  const ADAY_SUTUNLARI = "id, kaynak, baslik, url, kategori_tahmini, bulundu, durum, ilan_id, taslak_durumu, taslak_notu";
+  const TASLAK_CIP = {
+    hazir: ["yayinda", "TASLAK HAZIR"], hatali: ["taslak", "TASLAK: DÜZELTME GEREKİYOR"], metin_yok: ["taslak", "METİN OKUNAMADI"],
+    hata: ["hata", "TASLAK HAZIRLANAMADI"], bekliyor: ["", "TASLAK SIRADA"], atlandi: ["", "İLAN DEĞİL GİBİ"],
+  };
   let adaylar = [];
   async function adaylariYukle() {
     const liste = $("adayListe");
     liste.replaceChildren(h("div", { class: "bos" }, "Yükleniyor…"));
-    const { data, error } = await db.from("aday_ilanlar").select("*").eq("durum", $("adayDurum").value).order("bulundu", { ascending: false }).limit(300);
+    const { data, error } = await db.from("aday_ilanlar").select(ADAY_SUTUNLARI).eq("durum", $("adayDurum").value).order("bulundu", { ascending: false }).limit(300);
     if (error) { liste.replaceChildren(h("div", { class: "bos" }, "Adaylar alınamadı: " + error.message)); return; }
     adaylar = data || [];
     if ($("adayDurum").value === "yeni") adaySayisi(adaylar.length);
@@ -1548,9 +1669,11 @@ var KadroyaYonetim = (() => {
       h("div", {},
         h("div", { class: "baslik" }, h("a", { href: a.url, target: "_blank", rel: "noopener noreferrer" }, a.baslik)),
         h("div", { class: "meta" }, h("span", {}, a.kaynak), a.kategori_tahmini && h("span", { class: "cip" }, ETIKET.kategori[a.kategori_tahmini] || a.kategori_tahmini),
-          h("span", {}, tarihTR(a.bulundu)), a.ilan_id && h("span", {}, "→ " + a.ilan_id))),
+          h("span", {}, tarihTR(a.bulundu)), a.ilan_id && h("span", {}, "→ " + a.ilan_id),
+          a.durum === "yeni" && TASLAK_CIP[a.taslak_durumu] && h("span", { class: "cip " + TASLAK_CIP[a.taslak_durumu][0], title: a.taslak_notu || "" }, TASLAK_CIP[a.taslak_durumu][1])),
+        a.durum === "yeni" && a.taslak_notu && h("div", { class: "meta" }, a.taslak_notu)),
       h("div", { class: "eylem" },
-        a.durum === "yeni" && h("button", { class: "btn ana kucuk", onclick: () => adaydanIlan(a) }, "İlan oluştur"),
+        a.durum === "yeni" && h("button", { class: "btn ana kucuk", onclick: (e) => adaydanIlan(a, e.currentTarget) }, a.taslak_durumu === "hazir" || a.taslak_durumu === "hatali" ? "Taslağı aç" : "İlan oluştur"),
         a.durum === "yeni" && h("button", { class: "btn kucuk", onclick: () => adayDurumu([a.id], "reddedildi") }, "Reddet"),
         a.durum !== "yeni" && h("button", { class: "btn kucuk", onclick: () => adayDurumu([a.id], "yeni") }, "Yeniye al")))));
   }
@@ -1573,8 +1696,24 @@ var KadroyaYonetim = (() => {
   $("adayYenile").addEventListener("click", adaylariYukle);
   $("adayAra").addEventListener("input", adaylariCiz);
 
-  function adaydanIlan(a) {
+  async function adaydanIlan(a, btn) {
+    if (btn) btn.disabled = true;
+    const { data: ek, error } = await db.from("aday_ilanlar").select("metin, taslak, ipuclari").eq("id", a.id).single();
+    if (btn) btn.disabled = false;
+    if (error) { durum("Aday açılamadı: " + error.message); return; }
+    const ip = (ek && ek.ipuclari) || {};
+    if (ek && ek.taslak && typeof ek.taslak === "object") {
+      const t = klon(ek.taslak);
+      if (!Array.isArray(t.kadrolar)) t.kadrolar = [];
+      t.kadrolar.forEach((k) => { if (k && !Array.isArray(k.kurallar)) k.kurallar = []; });
+      t.eklendi = bugun;
+      editorAc(t, { yeni: true, aday: a, metin: ek.metin || "", ipuclari: ip, yz: true });
+      return;
+    }
     const ilan = bosIlan();
+    if (ip.kurum) ilan.kurum = ip.kurum;
+    if (ip.basvuruBaslangic) ilan.basvuruBaslangic = ip.basvuruBaslangic;
+    if (ip.sonBasvuru) ilan.sonBasvuru = ip.sonBasvuru;
     ilan.baslik = a.baslik.slice(0, 200);
     ilan.kaynaklar = [a.url];
     if (a.kategori_tahmini) ilan.kategori = a.kategori_tahmini;
@@ -1582,7 +1721,7 @@ var KadroyaYonetim = (() => {
     if (ilan.kategori === "emniyet") ilan.tip = "polis";
     if (ilan.kategori === "bilisim") ilan.tip = "sozlesmeli-bilisim";
     ilan.id = kimlikYap(a.baslik);
-    editorAc(ilan, { yeni: true, aday: a });
+    editorAc(ilan, { yeni: true, aday: a, metin: (ek && ek.metin) || "", ipuclari: ip });
   }
 
   // ── İlanlar ──
@@ -1658,7 +1797,13 @@ var KadroyaYonetim = (() => {
     kimlikElle = !baglam.yeni || !!baglam.koddan;
     $("editorBaslik").textContent = baglam.kayitli ? "İlanı düzenle" : baglam.koddan ? "Koddaki ilanı panelde düzenle" : "Yeni ilan";
     const ab = $("adayBilgi");
-    if (baglam.aday) { ab.hidden = false; ab.replaceChildren("Aday: ", h("a", { href: baglam.aday.url, target: "_blank", rel: "noopener noreferrer" }, baglam.aday.baslik), " · ", baglam.aday.kaynak, ". Resmi metni yan sekmede açıp şartları gir."); }
+    if (baglam.aday) {
+      ab.hidden = false;
+      ab.replaceChildren("Aday: ", h("a", { href: baglam.aday.url, target: "_blank", rel: "noopener noreferrer" }, baglam.aday.baslik), " · ", baglam.aday.kaynak, ". ",
+        baglam.yz ? h("b", {}, "Yapay zekâ taslağı. Her şartı altındaki ilan cümlesiyle karşılaştır, doğruysa \"Doğru\" kutusunu işaretle; hepsi işaretlenince yayımlayabilirsin.")
+          : baglam.metin ? "İlan metni aşağıda; şartları ona bakarak gir." : "Resmi metni yan sekmede açıp şartları gir.",
+        baglam.yz && baglam.aday.taslak_notu ? h("div", { class: "not" }, baglam.aday.taslak_notu) : null);
+    }
     else ab.hidden = true;
     $("kaydetMesaj").hidden = true;
     const yayinda = baglam.kayitli && baglam.kayitli.yayinda;
@@ -1703,13 +1848,17 @@ var KadroyaYonetim = (() => {
         alan("Kesinlik", secim(KESINLIKLER, i.kesinlik, ETIKET.kesinlik, undefined, (v) => ata(i, "kesinlik", v))),
         alan("Başvuru başlangıcı", h("input", { type: "date", value: i.basvuruBaslangic || "", onchange: (e) => ata(i, "basvuruBaslangic", e.target.value || undefined) })),
         alan("Son başvuru", h("input", { type: "date", value: i.sonBasvuru || "", onchange: (e) => ata(i, "sonBasvuru", e.target.value || undefined) })),
+        (i._kanitlar && (i._kanitlar.basvuruBaslangic || i._kanitlar.sonBasvuru)) ? h("div", { class: "genis" }, kanitKutusu(i._kanitlar.sonBasvuru || i._kanitlar.basvuruBaslangic, null)) : null,
         alan("Kaynak bağlantıları (her satıra bir; ilki resmi metin olsun)", h("textarea", { oninput: (e) => ata(i, "kaynaklar", satirAyir(e.target.value) || []) }, satirlar(i.kaynaklar)), "genis"),
         alan("Genel notlar (her satır ayrı madde: ücret, başvuru yeri, saat…)", h("textarea", { oninput: (e) => ata(i, "genelNotlar", satirAyir(e.target.value)) }, satirlar(i.genelNotlar)), "genis")));
 
     const kadrolar = i.kadrolar.map((k, ki) => kadroCiz(k, ki));
+    const metinKarti = baglam.metin ? h("div", { class: "kart", style: "margin-bottom:14px" },
+      h("h2", {}, "İlan metni"), h("p", { class: "not", style: "margin:0 0 8px" }, "Kaynaktan indirilen metin. Bir şartın altındaki \"Metinde göster\" o cümleyi burada işaretler."),
+      h("pre", { class: "kaynak-metin", id: "kaynakMetin" }, baglam.metin)) : null;
     const ekle = h("div", { class: "ekle-satir" },
       h("button", { class: "btn", onclick: () => { i.kadrolar.push(bosKadro(i.kadrolar.length + 1)); formCiz(); } }, "+ Kadro ekle"));
-    $("form").replaceChildren(meta, h("div", {}, kadrolar), ekle);
+    $("form").replaceChildren(...[metinKarti, meta, h("div", {}, kadrolar), ekle].filter(Boolean));
     degisti();
   }
 
@@ -1744,12 +1893,50 @@ var KadroyaYonetim = (() => {
     if (!t) return h("div", { class: "kural" }, h("div", { class: "kural-bas" }, h("b", {}, "Bilinmeyen kural: " + r.tip),
       h("button", { class: "btn kucuk tehlike", onclick: () => { k.kurallar.splice(ri, 1); formCiz(); } }, "Sil")));
     const tasi = (yon) => { const j = ri + yon; if (j < 0 || j >= k.kurallar.length) return; [k.kurallar[ri], k.kurallar[j]] = [k.kurallar[j], k.kurallar[ri]]; formCiz(); };
-    return h("div", { class: "kural" },
+    return h("div", { class: "kural" + (r._onay ? " onayli" : "") },
       h("div", { class: "kural-bas" }, h("b", {}, t.etiket, h("small", {}, t.aciklama)),
         h("button", { class: "btn kucuk", "aria-label": "Kuralı yukarı taşı", onclick: () => tasi(-1) }, "↑"),
         h("button", { class: "btn kucuk", "aria-label": "Kuralı aşağı taşı", onclick: () => tasi(1) }, "↓"),
         h("button", { class: "btn kucuk tehlike", onclick: () => { k.kurallar.splice(ri, 1); formCiz(); } }, "Sil")),
-      t.alanlar.length ? h("div", { class: "izgara" }, t.alanlar.map((a) => alanKontrol(r, a))) : null);
+      t.alanlar.length ? h("div", { class: "izgara" }, t.alanlar.map((a) => alanKontrol(r, a))) : null,
+      baglam.yz || r._kanit ? kanitKutusu(r._kanit, r) : null);
+  }
+
+  // ── Dayanak (yapay zekânın şart için gösterdiği ilan cümlesi) ──
+  const KANIT_ETIKET = {
+    var: "✓ Bu cümle ilan metninde aynen geçiyor", kismen: "≈ Kısmen eşleşiyor; metinle dikkatle karşılaştır",
+    yok: "✕ Bu cümle ilan metninde yok; şartı metinde kendin bul", "dayanak-yok": "! Dayanak cümlesi yok; şartı metinde kendin bul",
+    "metin-yok": "İlan metni yok; resmi metinle karşılaştır",
+  };
+  function kanitKutusu(alinti, kural) {
+    const d = alinti === "(kaynak sistemindeki başvuru tarihi)" ? "var" : kanitDurumu(alinti, baglam.metin || null);
+    return h("div", { class: "kanit" },
+      h("span", { class: "kd " + d }, alinti === "(kaynak sistemindeki başvuru tarihi)" ? "✓ Tarihler kaynak sistemden alındı" : KANIT_ETIKET[d]),
+      typeof alinti === "string" && alinti.trim() && alinti !== "(kaynak sistemindeki başvuru tarihi)" ? h("q", {}, alinti) : null,
+      h("div", { class: "kanit-alt" },
+        baglam.metin && typeof alinti === "string" && alinti.trim() && alinti !== "(kaynak sistemindeki başvuru tarihi)" ? h("button", { class: "btn kucuk", onclick: () => metindeGoster(alinti) }, "Metinde göster") : null,
+        kural ? h("label", {}, h("input", { type: "checkbox", checked: !!kural._onay, onchange: (e) => {
+          if (e.target.checked) kural._onay = true; else delete kural._onay;
+          e.target.closest(".kural").classList.toggle("onayli", e.target.checked); degisti();
+        } }), "Doğru") : null));
+  }
+  const kacir = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  function metindeGoster(alinti) {
+    const pre = $("kaynakMetin"); if (!pre) return;
+    const metin = baglam.metin;
+    const kelimeler = alinti.replace(/^["'“]|["'”]$/g, "").split(/\s+/).filter(Boolean);
+    let m = null;
+    // Önce cümlenin tamamı, bulunamazsa ilk 8 ve ilk 4 kelime aranır (boşluk ve satır sonu farkları önemsiz).
+    for (const n of [kelimeler.length, 8, 4]) {
+      if (n > kelimeler.length || n < 2) continue;
+      m = new RegExp(kelimeler.slice(0, n).map(kacir).join("[\\s\\u00ad-]+"), "iu").exec(metin);
+      if (m) break;
+    }
+    if (!m) { pre.replaceChildren(metin); durum("Cümle ilan metninde bulunamadı."); return; }
+    const isaret = h("mark", {}, m[0]);
+    pre.replaceChildren(metin.slice(0, m.index), isaret, metin.slice(m.index + m[0].length));
+    pre.scrollTop = Math.max(0, isaret.offsetTop - pre.offsetTop - 60);
+    pre.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
 
   const SECENEK_ETIKET = { enAz: ETIKET.ogrenim, enFazla: ETIKET.ogrenim, kabul: ETIKET.askerlik, izinli: ETIKET.cinsiyet, kategoriler: ETIKET.bolumKategori };
@@ -1797,21 +1984,25 @@ var KadroyaYonetim = (() => {
   let sonDogrulama = { hatalar: ["—"], uyarilar: [] };
   function degisti() {
     if (!taslak) return;
-    const r = sonDogrulama = ilanDogrula(taslak);
+    const temiz = temizle(taslak);
+    const r = sonDogrulama = ilanDogrula(temiz);
+    const tumKurallar = (taslak.kadrolar || []).flatMap((k) => (k && Array.isArray(k.kurallar) ? k.kurallar : []));
+    const onayli = tumKurallar.filter((x) => x._onay).length, onayGerekli = !!baglam.yz && onayli < tumKurallar.length;
     const d = $("dogrulama");
     d.replaceChildren(...[
       r.hatalar.length ? h("ul", { class: "liste-dogrula hatalar" }, r.hatalar.map((x) => h("li", {}, x))) : h("p", { class: "tamam" }, "✓ Hata yok"),
-      r.uyarilar.length ? h("ul", { class: "liste-dogrula uyarilar" }, r.uyarilar.map((x) => h("li", {}, x))) : null].filter(Boolean));
-    $("kaydetYayinla").disabled = !canli || r.hatalar.length > 0;
+      r.uyarilar.length ? h("ul", { class: "liste-dogrula uyarilar" }, r.uyarilar.map((x) => h("li", {}, x))) : null,
+      baglam.yz ? h("p", { class: onayGerekli ? "mesaj" : "tamam", id: "onaySayaci" }, (onayGerekli ? "Onaylanan şart: " : "✓ Tüm şartlar onaylandı: ") + onayli + " / " + tumKurallar.length) : null].filter(Boolean));
+    $("kaydetYayinla").disabled = !canli || r.hatalar.length > 0 || onayGerekli;
     $("kaydetTaslak").disabled = !canli || !ID_DESENI.test(taslak.id || "") || (taslak.id || "").length < 3;
     const o = $("onizleme");
     if (r.hatalar.length) o.replaceChildren(h("p", { class: "not" }, "Hatalar düzelince önizleme görünür."));
     else {
       try {
-        const sonuc = ORNEK_PROFILLER.map(([, p]) => eslestir([taslak], p, bugun)[0]);
+        const sonuc = ORNEK_PROFILLER.map(([, p]) => eslestir([temiz], p, bugun)[0]);
         o.replaceChildren(h("table", { class: "onizleme" },
           h("thead", {}, h("tr", {}, h("th", {}, "Kadro"), ORNEK_PROFILLER.map(([ad], pi) => h("th", { title: ad }, "Aday " + (pi + 1))))),
-          h("tbody", {}, taslak.kadrolar.map((k, ki) => h("tr", {}, h("td", {}, k.unvan),
+          h("tbody", {}, temiz.kadrolar.map((k, ki) => h("tr", {}, h("td", {}, k.unvan),
             sonuc.map((s) => { const ks = s.kadrolar[ki]; return h("td", { class: "d " + ks.durum, title: ks.sonuclar.filter((x) => x.durum !== "uygun").map((x) => x.gerekce).join("\n") || "Tüm şartlar uygun" }, IKON[ks.durum]); }))))),
           h("p", { class: "not" }, ORNEK_PROFILLER.map(([ad], pi) => "Aday " + (pi + 1) + ": " + ad).join(" · ")),
           h("p", { class: "not" }, "Zaman: " + ({ acik: "başvuru açık", yakinda: "yakında açılacak", kapandi: "kapandı", bekleniyor: "bekleniyor" }[sonuc[0].zaman] || sonuc[0].zaman)));
@@ -1834,61 +2025,24 @@ var KadroyaYonetim = (() => {
     if ((baglam.kayitli || baglam.koddan) && x.id !== eskiId) { x.id = eskiId; m.textContent = "Uygulandı. Kimlik değiştirilemediği için eski kimlik korundu."; }
     else m.textContent = "Uygulandı. Formu resmi metinle karşılaştır.";
     if (baglam.aday && !(x.kaynaklar || []).includes(baglam.aday.url)) x.kaynaklar = [baglam.aday.url].concat(x.kaynaklar || []);
+    if (JSON.stringify(x).includes('"_kanit"')) baglam.yz = true;
     taslak = x; kimlikElle = true; formCiz();
   });
 
-  // Ücretsiz bir sohbet asistanına verilecek komut. Şema KURAL_SEMA'dan üretilir; kurallar değişince komut da güncel kalır.
-  function yzKomutu() {
-    const ornekDeger = (a) => {
-      const t = a.tip;
-      switch (t.tur) {
-        case "secim": return '"' + t.secenekler.join("|") + '"';
-        case "secimCoklu": return '["' + t.secenekler.join('"|"') + '"]';
-        case "sayi": return "sayı";
-        case "sayiListe": return "[" + yil + "]";
-        case "tarih": return '"YYYY-AA-GG"';
-        case "metin": return '"metin"';
-        case "metinListe": return '["metin"]';
-        case "bool": return "true";
-        case "kosulluListe": return '[{"durum":"tecilli","not":"metin"}]';
-      }
-    };
-    const kurallar = Object.entries(KURAL_SEMA).map(([tip, t]) =>
-      "- " + JSON.stringify({ tip }).slice(0, -1) + t.alanlar.map((a) => ',"' + a.ad + '"' + (a.zorunlu ? "" : "?") + ":" + ornekDeger(a)).join("") + "}  → " + t.aciklama).join("\n");
-    return [
-      "Aşağıdaki Türkiye kamu personel alım ilanını, şartlarını eksiksiz yansıtan TEK bir JSON nesnesine dönüştür. Yalnızca JSON yaz, açıklama yazma.",
-      "",
-      "İlan biçimi:",
-      '{"id":"kucuk-harf-tire-yil","kurum":"","baslik":"","tip":"' + ILAN_TIPLERI.join("|") + '","kategori":"' + KATEGORI_LISTESI.join("|") + '",',
-      ' "eklendi":"' + bugun + '","basvuruBaslangic":"YYYY-AA-GG","sonBasvuru":"YYYY-AA-GG","kesinlik":"resmi-metin","kaynaklar":["resmi ilan bağlantısı"],',
-      ' "genelNotlar":["başvuru yeri, ücret, saat gibi notlar"],',
-      ' "kadrolar":[{"id":"kucuk-harf-tire","unvan":"","kontenjan":0,"iller?":["il"],"notlar?":["not"],"kurallar":[ ...kurallar ]}]}',
-      "",
-      "Kural tipleri (? işaretli alanlar isteğe bağlı, alan adlarını aynen kullan):",
-      kurallar,
-      "",
-      "Kurallar:",
-      "- Farklı öğrenim düzeyi, bölüm ya da puan türü isteyen her pozisyon ayrı kadro olsun. Aynı şartlı pozisyonları tek kadroda topla, kontenjanları topla.",
-      "- Bölüm şartı yoksa {\"tip\":\"bolum\",\"herBolum\":true} ekle. Bölüm listesi çok uzun bir tabloya bağlıysa bolumTablo kullan.",
-      "- Yaş şartı \"X yaşını bitirmemiş olmak\" ise yasBitirmemis, referans tarihi ilandaki tarih (genelde son başvuru günü ya da yılın 1 Ocak'ı).",
-      "- Motorun doğrulayamadığı her şartı (boy, kilo, sağlık, ehliyet, sertifika, ikamet…) manuel kuralı olarak yaz.",
-      "- Metinde olmayan bir şeyi uydurma. Emin olmadığın şartı manuel kuralı olarak yaz. Kontenjan bilinmiyorsa 0.",
-      "- Tarihler YYYY-AA-GG. Kimlikler yalnızca küçük harf, rakam ve tire (Türkçe harf yok).",
-      "",
-      "İLAN METNİ:",
-      "(buraya ilanın resmi metnini yapıştır)",
-    ].join("\n");
-  }
   $("yzKopyala").addEventListener("click", async () => {
     const m = $("yzMesaj"); m.hidden = false;
-    const metin = yzKomutu();
-    try { await navigator.clipboard.writeText(metin); m.textContent = "Kopyalandı. Sohbet asistanına yapıştır, sonuna ilan metnini ekle."; }
+    const metin = yzKomutu({ bugun, metin: baglam.metin || undefined, kaynakUrl: (taslak && taslak.kaynaklar || [])[0], ipuclari: baglam.ipuclari });
+    try {
+      await navigator.clipboard.writeText(metin);
+      m.textContent = baglam.metin ? "Komut ilan metniyle birlikte kopyalandı; doğrudan sohbet asistanına yapıştır." : "Kopyalandı. Sohbet asistanına yapıştır, en alta ilan metnini ekle.";
+    }
     catch (e) { $("jsonDetay").open = true; $("jsonAlan").value = metin; $("jsonAlan").select(); m.textContent = "Panoya kopyalanamadı; komut JSON alanına yazıldı, oradan kopyala."; }
   });
 
   async function kaydet(yayinla) {
     const m = $("kaydetMesaj"); m.hidden = false; m.classList.remove("hata");
-    const r = ilanDogrula(taslak);
+    const veri = temizle(taslak);
+    const r = ilanDogrula(veri);
     if (yayinla && r.hatalar.length) { m.textContent = "Yayımlamadan önce hataları düzelt."; m.classList.add("hata"); return; }
     if (!baglam.kayitli) {
       // Yeni kayıtta aynı kimlik zaten varsa üzerine yazma.
@@ -1897,7 +2051,7 @@ var KadroyaYonetim = (() => {
     }
     const yayinda = yayinla || !!(baglam.kayitli && baglam.kayitli.yayinda);
     $("kaydetTaslak").disabled = $("kaydetYayinla").disabled = true;
-    const { data, error } = await db.from("ilanlar").upsert({ id: taslak.id, veri: taslak, yayinda }, { onConflict: "id" }).select("id, veri, yayinda, yayinlandi, guncellendi").single();
+    const { data, error } = await db.from("ilanlar").upsert({ id: veri.id, veri, yayinda }, { onConflict: "id" }).select("id, veri, yayinda, yayinlandi, guncellendi").single();
     if (error) { m.textContent = "Kaydedilemedi: " + error.message; m.classList.add("hata"); degisti(); return; }
     if (baglam.aday) { await adayDurumu([baglam.aday.id], "islendi", taslak.id); }
     baglam = { kayitli: data }; taslak = klon(data.veri);
